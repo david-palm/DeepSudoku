@@ -6,6 +6,3 @@
 
 void bitmapToMat(JNIEnv *env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha);
 void matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremultiplyAlpha);
-
-void myFlip(cv::Mat src);
-void myBlur(cv::Mat src, float sigma);

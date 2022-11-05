@@ -88,11 +88,3 @@ void matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremulti
         return;
     }
 }
-
-void myFlip(cv::Mat src) {
-    flip(src, src, 0);
-}
-
-void myBlur(cv::Mat src, float sigma) {
-    GaussianBlur(src, src, cv::Size(), sigma);
-}
