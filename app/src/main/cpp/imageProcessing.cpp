@@ -36,7 +36,7 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
         return cv::contourArea(contour1) > cv::contourArea(contour2);
     };
 
-    /* Identifies sudoku contour inside image return the approximation of it. */
+    /* Identifies sudoku contour inside image returns the approximation of it. */
     auto getSudokuContour = [&]()
     {
         //Finding all contours in the image
