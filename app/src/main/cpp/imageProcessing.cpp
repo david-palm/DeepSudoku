@@ -42,11 +42,23 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
         //Finding all contours in the image
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
-        cv::findContours(output, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        cv::findContours(output, contours, hierarchy, cv::RETR_EXTERNAL,
+                         cv::CHAIN_APPROX_SIMPLE);
 
-        //Sort all contours by largest area
+        //Sort all contours by largest area to get the approximation
         std::sort(contours.begin(), contours.end(), sortBySmallestArea);
+        std::vector<cv::Point> approximation;
 
+        for(std::vector<cv::Point> contour: contours)
+        {
+            //Approximate the contour
+            cv::approxPolyDP(contour, approximation,
+                             0.08 * cv::arcLength(contour, true), true);
+            if(approximation.size() == 4) break;
+        }
+        //Displaying approximated contour
+        cv::drawContours(input, std::vector<std::vector<cv::Point>> { approximation },
+                         0, cv::Scalar(0,255,0),25);
     };
     prepareImage();
     getSudokuContour();

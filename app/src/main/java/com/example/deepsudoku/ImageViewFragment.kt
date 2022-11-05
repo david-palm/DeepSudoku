@@ -50,7 +50,7 @@ class ImageViewFragment : Fragment() {
         image = image.copy(Bitmap.Config.ARGB_8888, true)
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        blur(image, output)
+        blur(image, output);
         viewBinding.imageView.setImageBitmap(output)
     }
 
