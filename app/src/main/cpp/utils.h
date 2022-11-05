@@ -4,5 +4,10 @@
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 
-void myFlip(cv::Mat src);
-void myBlur(cv::Mat src, float sigma);
+using namespace cv;
+
+void bitmapToMat(JNIEnv *env, jobject bitmap, Mat& dst, jboolean needUnPremultiplyAlpha);
+void matToBitmap(JNIEnv* env, Mat src, jobject bitmap, jboolean needPremultiplyAlpha);
+
+void myFlip(Mat src);
+void myBlur(Mat src, float sigma);
