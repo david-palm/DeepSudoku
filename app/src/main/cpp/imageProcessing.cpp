@@ -31,7 +31,7 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
     };
 
     /* Identifies sudoku contour inside image returns the approximation of it. */
-    auto getSudokuContour = [&](std::vector<cv::Point> approximation)
+    auto getSudokuContour = [&](std::vector<cv::Point> &approximation)
     {
         /* Helper function to sort contours by largest area */
         auto sortBySmallestArea = [](std::vector<cv::Point> contour1, std::vector<cv::Point> contour2)
