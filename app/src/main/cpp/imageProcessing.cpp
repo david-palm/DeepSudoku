@@ -12,22 +12,43 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
     {
         //Image is convert to grayscale and blurred before conversion to binary image
         cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
-        cv::GaussianBlur(input, output, cv::Size(kernelSize, kernelSize), 3);
+        cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
 
         //Converting image to binary using adaptive threshold
-        cv::adaptiveThreshold(input, output, 255,
+        cv::adaptiveThreshold(output, output, 255,
                               cv::ADAPTIVE_THRESH_GAUSSIAN_C,
                               cv::THRESH_BINARY_INV,199, 25);
 
         //Image can be dilated and eroded to close gaps in lines
-        if(dilating) cv::dilate(input, output,\
+        if(dilating) cv::dilate(output, output,\
                cv::Mat(cv::Size(5,5), CV_8U),\
                cv::Point(-1, -1), 2);
 
-        if(eroding) cv::erode(input, output,\
+        if(eroding) cv::erode(output, output,\
                cv::Mat(cv::Size(5,5), CV_8U),\
                cv::Point(-1, -1), 2);
 
     };
+
+    /* Helper function to sort contours by largest area */
+    auto sortBySmallestArea = [](std::vector<cv::Point> contour1, std::vector<cv::Point> contour2)
+    {
+        return cv::contourArea(contour1) > cv::contourArea(contour2);
+    };
+
+    /* Identifies sudoku contour inside image return the approximation of it. */
+    auto getSudokuContour = [&]()
+    {
+        //Finding all contours in the image
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::findContours(output, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+
+        //Sort all contours by largest area
+        std::sort(contours.begin(), contours.end(), sortBySmallestArea);
+
+    };
     prepareImage();
+    getSudokuContour();
+
 }
