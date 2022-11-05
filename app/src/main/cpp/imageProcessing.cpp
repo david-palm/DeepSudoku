@@ -34,7 +34,7 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
     auto getSudokuContour = [&](std::vector<cv::Point>& approximation)
     {
         /* Helper function to sort contours by largest area */
-        auto sortBySmallestArea = [](std::vector<cv::Point> contour1, std::vector<cv::Point> contour2) -> bool
+        auto sortBySmallestArea = [](std::vector<cv::Point>& contour1, std::vector<cv::Point>& contour2) -> bool
         {
             return cv::contourArea(contour1) > cv::contourArea(contour2);
         };
@@ -48,7 +48,7 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
         //Sort all contours by largest area to get the approximation
         std::sort(contours.begin(), contours.end(), sortBySmallestArea);
 
-        for(std::vector<cv::Point> contour: contours)
+        for(std::vector<cv::Point>& contour: contours)
         {
             //Approximate the contour
             cv::approxPolyDP(contour, approximation,
@@ -71,17 +71,19 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
         /* Sorts the four points of the approximation (top right, top left, bottom left, bottom right) */
         auto sortPoints = [] (std::vector<cv::Point>& points, std::vector<cv::Point>& sortedPoints)
         {
-            auto sortByXCoordinate = [] (cv::Point& point1, cv::Point& point2) -> bool
+            auto sortByXGreater = [] (cv::Point& point1, cv::Point& point2) -> bool
             { return point1.x > point2.x; };
-            auto sortByYCoordinate = [] (cv::Point& point1, cv::Point& point2) -> bool
+            auto sortByXLower = [] (cv::Point& point1, cv::Point& point2) -> bool
+            { return point1.x < point2.x; };
+            auto sortByYGreater = [] (cv::Point& point1, cv::Point& point2) -> bool
             { return point1.y < point2.y; };
 
             sortedPoints.insert(sortedPoints.begin(), points.begin(), points.end());
             //Points are first sorted by Y coordinate
-            std::sort(sortedPoints.begin(), sortedPoints.end(), sortByYCoordinate);
+            std::sort(sortedPoints.begin(), sortedPoints.end(), sortByYGreater);
             //Then the top two and bottom two points are sorted by X coordinate
-            std::sort(sortedPoints.begin(), sortedPoints.begin() + 2, sortByXCoordinate);
-            std::sort(sortedPoints.end() - 1, sortedPoints.end(), sortByXCoordinate);
+            std::sort(sortedPoints.begin(), sortedPoints.begin() + 2, sortByXGreater);
+            std::sort(sortedPoints.end() - 2, sortedPoints.end(), sortByXLower);
         };
 
         double distance = calculateDistance(approximation[0], approximation[3]);
@@ -99,6 +101,17 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
         paddedApproximation[1].y -= (int) (cellSize * 0.3);
         paddedApproximation[2].y += (int) (cellSize * 0.37);
         paddedApproximation[3].y += (int) (cellSize * 0.37);
+
+        //Clamping values if points are outside of image
+        for(cv::Point& point : paddedApproximation)
+        {
+            point.x = (point.x < 0) ? 0 : point.x;
+            point.y = (point.y < 0) ? 0 : point.y;
+
+            point.x = (point.x > input.cols) ? input.cols : point.x;
+            point.y = (point.y > input.rows) ? input.rows : point.y;
+        }
+
     };
 
     std::vector<cv::Point> approximation;
