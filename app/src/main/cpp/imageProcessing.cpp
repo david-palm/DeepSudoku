@@ -30,15 +30,15 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
 
     };
 
-    /* Helper function to sort contours by largest area */
-    auto sortBySmallestArea = [](std::vector<cv::Point> contour1, std::vector<cv::Point> contour2)
-    {
-        return cv::contourArea(contour1) > cv::contourArea(contour2);
-    };
-
     /* Identifies sudoku contour inside image returns the approximation of it. */
     auto getSudokuContour = [&]()
     {
+        /* Helper function to sort contours by largest area */
+        auto sortBySmallestArea = [](std::vector<cv::Point> contour1, std::vector<cv::Point> contour2)
+        {
+            return cv::contourArea(contour1) > cv::contourArea(contour2);
+        };
+
         //Finding all contours in the image
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
