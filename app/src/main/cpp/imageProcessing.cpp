@@ -1,11 +1,11 @@
 #include "imageProcessing.h"
 
-/* Identifies sudoku in input image and returns an image with the sudoku warped to fit the screen.
- * Padding can be set to true in order to avoid cutting parts of the sudoku of if the page is warped.
+/* Identifies sudoku in input image and returns an array of four points that make up the sudoku.
+ * Padding can be set to true in order to avoid cutting parts of the sudoku of when the page is warped.
  * KernelSize sets the height and width of the kernel in pixels that is used to blur the image with,
  * before converting it to a binary image.
 */
-void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
+void identifySudoku(cv::Mat& input, cv::Mat& output, std::vector<cv::Point>& contour, bool padding, int kernelSize )
 {
     /* Converts the image to binary. */
     auto prepareImage = [&](bool dilating = true, bool eroding = true)
@@ -128,6 +128,4 @@ void cutSudoku(cv::Mat& input, cv::Mat& output, bool padding, int kernelSize)
     //Displaying approximated contour
     cv::drawContours(input, std::vector<std::vector<cv::Point>> { paddedApproximation },
                      0, cv::Scalar(0,0,255),25);
-
-
 }

@@ -24,6 +24,7 @@ class ImageViewFragment : Fragment() {
     private var _viewBinding: FragmentImageViewBinding? = null
     private val viewBinding: FragmentImageViewBinding get() = _viewBinding!!
     private var imageUri: Uri? = null
+    lateinit var image: Bitmap
 
 
     override fun onCreateView(
@@ -40,18 +41,26 @@ class ImageViewFragment : Fragment() {
         viewBinding.imageAcceptButton.setOnClickListener { solveSudoku() }
         viewBinding.imageDeleteButton.setOnClickListener { deleteImage() }
 
+        identifySudoku();
+
         return viewBinding.root
     }
 
-    private fun solveSudoku(){
+    fun identifySudoku() {
         //Loading image
-        var image: Bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(requireContext().contentResolver, imageUri!!))
+        image = ImageDecoder.decodeBitmap(ImageDecoder.createSource(requireContext().contentResolver, imageUri!!))
         //Making mutable copies of input image in order to pass them to native code
         image = image.copy(Bitmap.Config.ARGB_8888, true)
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        blur(image, output);
+        identifySudoku(image, output);
         viewBinding.imageView.setImageBitmap(output)
+    }
+
+    private fun solveSudoku(){
+        var output: Bitmap = image.copy(image.config, true)
+        solveSudoku(output);
+        //viewBinding.imageView.setImageBitmap(output)
     }
 
     private fun deleteImage(){
@@ -60,7 +69,8 @@ class ImageViewFragment : Fragment() {
             R.id.action_imageViewFragment_to_imageCaptureFragment, Bundle())
     }
 
-    external fun blur(image: Bitmap, output: Bitmap)
+    external fun identifySudoku(image: Bitmap, output: Bitmap)
+    external fun solveSudoku(output: Bitmap);
 
     companion object {
 
