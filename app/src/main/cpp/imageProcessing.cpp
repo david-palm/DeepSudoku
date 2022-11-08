@@ -7,24 +7,25 @@
 */
 void identifySudoku(cv::Mat& input, cv::Mat& output, std::vector<cv::Point>& contour, bool padding, int kernelSize )
 {
+    cv::Mat binaryImage;
     /* Converts the image to binary. */
     auto prepareImage = [&](bool dilating = true, bool eroding = true)
     {
         //Image is convert to grayscale and blurred before conversion to binary image
-        cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
-        cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
+        cv::cvtColor(input, binaryImage, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(binaryImage, binaryImage, cv::Size(kernelSize, kernelSize), 3);
 
         //Converting image to binary using adaptive threshold
-        cv::adaptiveThreshold(output, output, 255,
+        cv::adaptiveThreshold(binaryImage, binaryImage, 255,
                               cv::ADAPTIVE_THRESH_GAUSSIAN_C,
                               cv::THRESH_BINARY_INV,199, 25);
 
         //Image can be dilated and eroded to close gaps in lines
-        if(dilating) cv::dilate(output, output,\
+        if(dilating) cv::dilate(binaryImage, binaryImage,\
                cv::Mat(cv::Size(5,5), CV_8U),\
                cv::Point(-1, -1), 2);
 
-        if(eroding) cv::erode(output, output,\
+        if(eroding) cv::erode(binaryImage, binaryImage,\
                cv::Mat(cv::Size(5,5), CV_8U),\
                cv::Point(-1, -1), 2);
 
@@ -42,7 +43,7 @@ void identifySudoku(cv::Mat& input, cv::Mat& output, std::vector<cv::Point>& con
         //Finding all contours in the image
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
-        cv::findContours(output, contours, hierarchy, cv::RETR_EXTERNAL,
+        cv::findContours(binaryImage, contours, hierarchy, cv::RETR_EXTERNAL,
                          cv::CHAIN_APPROX_SIMPLE);
 
         //Sort all contours by largest area to get the approximation
@@ -121,11 +122,24 @@ void identifySudoku(cv::Mat& input, cv::Mat& output, std::vector<cv::Point>& con
     getSudokuContour(approximation);
     addPadding(approximation, paddedApproximation);
 
+    output = input.clone();
     //Displaying approximated contour
-    cv::drawContours(input, std::vector<std::vector<cv::Point>> { approximation },
+    cv::drawContours(output, std::vector<std::vector<cv::Point>> { approximation },
                      0, cv::Scalar(0,255,0),25);
 
     //Displaying approximated contour
-    cv::drawContours(input, std::vector<std::vector<cv::Point>> { paddedApproximation },
+    cv::drawContours(output, std::vector<std::vector<cv::Point>> { paddedApproximation },
                      0, cv::Scalar(0,0,255),25);
+    contour = paddedApproximation;
+}
+
+/* Warps the sudoku to fill image. Contour points need to be in following order: tr, tl, bl, br. */
+void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& contour)
+{
+    std::vector<cv::Point2f> corners = { cv::Point2f(warped.cols, 0),
+                                         cv::Point2f(0, 0),
+                                         cv::Point2f(0, warped.rows),
+                                         cv::Point2f(warped.cols, warped.rows) };
+    cv::Mat transform = cv::getPerspectiveTransform(contour, corners);
+    cv::warpPerspective(input, warped, transform, warped.size());
 }

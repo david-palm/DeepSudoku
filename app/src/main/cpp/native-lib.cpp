@@ -6,21 +6,43 @@
 #include "utils.h"
 #include "imageProcessing.h"
 
-cv::Mat input;
-std::vector<cv::Point> contour;
-
+/* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
+ * the coordinates of the sudoku contour. */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject image, jobject output)
+Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
 {
-    cv::Mat sudokuPreview = input;
-    bitmapToMat(env, image, input, 0);
-    identifySudoku(input, sudokuPreview, contour);
-    matToBitmap(env, input, output, false);
+    //Converting Bitmap to matrix
+    cv::Mat inputMatrix;
+    bitmapToMat(env, inputBitmap, inputMatrix, 0);
+
+    //Identifying sudoku
+    cv::Mat outputMatrix;
+    std::vector<cv::Point> contour;
+    identifySudoku(inputMatrix, outputMatrix, contour);
+
+    //Converting matrix back to Bitmap and contour to float array
+    matToBitmap(env, outputMatrix, outputBitmap, false);
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jobject output)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz,  jobject inputBitmap, jobject outputBitmap)
 {
+    //Converting Bitmap to matrix
+    cv::Mat inputMatrix;
+    bitmapToMat(env, inputBitmap, inputMatrix, 0);
 
+    //Identifying sudoku
+    cv::Mat previewMatrix;
+    std::vector<cv::Point> contour;
+    identifySudoku(inputMatrix, previewMatrix, contour);
+
+    std::vector<cv::Point2f> convertedContour;
+    intToFloatContour(contour, convertedContour);
+
+    //Cutting sudoku
+    cv::Mat outputMatrix = inputMatrix;
+    warpSudoku(inputMatrix, outputMatrix, convertedContour);
+
+    matToBitmap(env, outputMatrix, outputBitmap, false);
 }

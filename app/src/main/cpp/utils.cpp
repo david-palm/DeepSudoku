@@ -1,6 +1,6 @@
 #include "utils.h"
 
-void bitmapToMat(JNIEnv *env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha)
+void bitmapToMat(JNIEnv* env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha)
 {
     AndroidBitmapInfo  info;
     void*              pixels = 0;
@@ -87,4 +87,13 @@ void matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremulti
         env->ThrowNew(je, "Unknown exception in JNI code {nMatToBitmap}");
         return;
     }
+}
+
+void intToFloatContour(std::vector<cv::Point>& src, std::vector<cv::Point2f>& dst)
+{
+    for(int i = 0; i < 4; i++)
+    {
+        dst.push_back(cv::Point2f(src[i].x, src[i].y));
+    }
+
 }

@@ -53,14 +53,17 @@ class ImageViewFragment : Fragment() {
         image = image.copy(Bitmap.Config.ARGB_8888, true)
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        identifySudoku(image, output);
+        identifySudoku(image, output)
         viewBinding.imageView.setImageBitmap(output)
     }
 
     private fun solveSudoku(){
         var output: Bitmap = image.copy(image.config, true)
-        solveSudoku(output);
-        //viewBinding.imageView.setImageBitmap(output)
+        //Process image by calling native code
+        solveSudoku(image, output)
+        //Process image by calling native code
+        solveSudoku(image, output)
+        viewBinding.imageView.setImageBitmap(output)
     }
 
     private fun deleteImage(){
@@ -69,8 +72,8 @@ class ImageViewFragment : Fragment() {
             R.id.action_imageViewFragment_to_imageCaptureFragment, Bundle())
     }
 
-    external fun identifySudoku(image: Bitmap, output: Bitmap)
-    external fun solveSudoku(output: Bitmap);
+    external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
+    external fun solveSudoku(inputImage: Bitmap, outputImage: Bitmap)
 
     companion object {
 
