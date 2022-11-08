@@ -48,5 +48,5 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat gradientX, gradientY;
     createGradientImages(inputMatrix, gradientX, gradientY);
     
-    matToBitmap(env, gradientX, outputBitmap, false);
+    matToBitmap(env, gradientY, outputBitmap, false);
 }

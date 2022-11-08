@@ -156,21 +156,21 @@ void createGradientImages(cv::Mat& input, cv::Mat& gradientX, cv::Mat& gradientY
     };
 
     /* Filters images with sobel kernel to create gradient images */
-    auto filterImage = [&] (cv::Mat& gradientX, cv::Mat& gradientY)
+    auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
     {
-        float sobelKernelX[9] = { (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
-                                  (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
-                                  (- 1.0f / 8.0f), 0, (1.0f / 8.0f) };
-        float sobelKernelY[9] = { (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
-                                  0, 0, 0,
-                                  (- 1.0f / 8.0f), (-2.0f / 8.0f), (- 1.0f / 8.0f) };
+        cv::Mat sobelKernelX = (cv::Mat_<float>(3, 3) << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                                                                    (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                                                                    (- 1.0f / 8.0f), 0, (1.0f / 8.0f));
+        cv::Mat sobelKernelY = (cv::Mat_<float>(3, 3) << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                                                                     0, 0, 0,
+                                                                    (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f));
 
-        cv::filter2D;
-
+        cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
+        cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
     };
 
     cv::Mat preparedImage;
     prepareImage(preparedImage);
 
-    gradientX = preparedImage;
+    filterImage(preparedImage, gradientX, gradientY);
 }
