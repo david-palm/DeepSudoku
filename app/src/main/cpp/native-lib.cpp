@@ -44,9 +44,8 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat outputMatrix = inputMatrix;
     warpSudoku(inputMatrix, outputMatrix, convertedContour);
 
-    //Creating gradient images to identify lines
-    cv::Mat gradientX, gradientY;
-    createGradientImages(inputMatrix, gradientX, gradientY);
+    //Identifying lines
+    identifyLines(inputMatrix, outputMatrix);
     
-    matToBitmap(env, gradientY, outputBitmap, false);
+    matToBitmap(env, outputMatrix, outputBitmap, false);
 }

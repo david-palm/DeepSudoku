@@ -144,33 +144,39 @@ void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& conto
     cv::warpPerspective(input, warped, transform, warped.size());
 }
 
-/* Creates x and y gradient images from input */
-
-void createGradientImages(cv::Mat& input, cv::Mat& gradientX, cv::Mat& gradientY, int kernelSize)
+void identifyLines(cv::Mat& input, cv::Mat& output)
 {
-    /* Converts image to grayscale and blurs it */
-    auto prepareImage = [&] (cv::Mat& output)
+    /* Creates x and y gradient images from input */
+    auto createGradientImages = [&] (cv::Mat& gradientX, cv::Mat& gradientY, int kernelSize = 25)
     {
-        cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
-        cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
+        /* Converts image to grayscale and blurs it */
+        auto prepareImage = [&] (cv::Mat& output)
+        {
+            cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
+            cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
+        };
+
+        /* Filters images with sobel kernel to create gradient images */
+        auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
+        {
+            cv::Mat sobelKernelX = (cv::Mat_<float>(3, 3) << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                    (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                    (- 1.0f / 8.0f), 0, (1.0f / 8.0f));
+            cv::Mat sobelKernelY = (cv::Mat_<float>(3, 3) << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                    0, 0, 0,
+                    (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f));
+
+            cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
+            cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
+        };
+
+        cv::Mat preparedImage;
+        prepareImage(preparedImage);
+
+        filterImage(preparedImage, gradientX, gradientY);
     };
 
-    /* Filters images with sobel kernel to create gradient images */
-    auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
-    {
-        cv::Mat sobelKernelX = (cv::Mat_<float>(3, 3) << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
-                                                                    (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
-                                                                    (- 1.0f / 8.0f), 0, (1.0f / 8.0f));
-        cv::Mat sobelKernelY = (cv::Mat_<float>(3, 3) << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
-                                                                     0, 0, 0,
-                                                                    (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f));
-
-        cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
-        cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
-    };
-
-    cv::Mat preparedImage;
-    prepareImage(preparedImage);
-
-    filterImage(preparedImage, gradientX, gradientY);
+    cv::Mat gradientX, gradientY;
+    createGradientImages(gradientX, gradientY);
+    output = gradientY;
 }
