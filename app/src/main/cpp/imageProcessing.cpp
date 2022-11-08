@@ -143,3 +143,34 @@ void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& conto
     cv::Mat transform = cv::getPerspectiveTransform(contour, corners);
     cv::warpPerspective(input, warped, transform, warped.size());
 }
+
+/* Creates x and y gradient images from input */
+
+void createGradientImages(cv::Mat& input, cv::Mat& gradientX, cv::Mat& gradientY, int kernelSize)
+{
+    /* Converts image to grayscale and blurs it */
+    auto prepareImage = [&] (cv::Mat& output)
+    {
+        cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
+    };
+
+    /* Filters images with sobel kernel to create gradient images */
+    auto filterImage = [&] (cv::Mat& gradientX, cv::Mat& gradientY)
+    {
+        float sobelKernelX[9] = { (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                                  (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                                  (- 1.0f / 8.0f), 0, (1.0f / 8.0f) };
+        float sobelKernelY[9] = { (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                                  0, 0, 0,
+                                  (- 1.0f / 8.0f), (-2.0f / 8.0f), (- 1.0f / 8.0f) };
+
+        cv::filter2D;
+
+    };
+
+    cv::Mat preparedImage;
+    prepareImage(preparedImage);
+
+    gradientX = preparedImage;
+}
