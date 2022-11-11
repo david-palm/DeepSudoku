@@ -159,12 +159,14 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
         /* Filters images with sobel kernel to create gradient images */
         auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
         {
-            cv::Mat sobelKernelX = (cv::Mat_<float>(3, 3) << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
-                    (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
-                    (- 1.0f / 8.0f), 0, (1.0f / 8.0f));
-            cv::Mat sobelKernelY = (cv::Mat_<float>(3, 3) << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
-                    0, 0, 0,
-                    (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f));
+            cv::Mat_<float> sobelKernelX;
+            sobelKernelX << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                            (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                            (- 1.0f / 8.0f), 0, (1.0f / 8.0f);
+            cv::Mat_<float> sobelKernelY;
+            sobelKernelY << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                            0, 0, 0,
+                            (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f);
 
             cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
             cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
