@@ -2,6 +2,7 @@
 #include <string>
 #include <opencv2/core.hpp>
 #include <android/bitmap.h>
+#include <android/log.h>
 
 #include "utils.h"
 #include "imageProcessing.h"
@@ -45,7 +46,15 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     warpSudoku(inputMatrix, outputMatrix, convertedContour);
 
     //Identifying lines
-    identifyLines(inputMatrix, outputMatrix);
+    std::vector<Pixel*> lines;
+    identifyLines(inputMatrix, outputMatrix, lines);
+    //Finding intersections
+    std::vector<cv::Point2i*> intersections;
+    findIntersections(lines, intersections);
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Intersections: %d", intersections.size());
+    //Displaying intersections
+    displayIntersections(outputMatrix, intersections);
+
     
     matToBitmap(env, outputMatrix, outputBitmap, false);
 }
