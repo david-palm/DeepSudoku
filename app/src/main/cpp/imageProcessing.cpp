@@ -1,4 +1,7 @@
 #include "imageProcessing.h"
+#include "HoughAccumulator.h"
+
+#include <android/log.h>
 
 /* Identifies sudoku in input image and returns an array of four points that make up the sudoku.
  * Padding can be set to true in order to avoid cutting parts of the sudoku of when the page is warped.
@@ -136,6 +139,7 @@ void identifySudoku(cv::Mat& input, cv::Mat& output, std::vector<cv::Point>& con
 /* Warps the sudoku to fill image. Contour points need to be in following order: tr, tl, bl, br. */
 void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& contour)
 {
+
     std::vector<cv::Point2f> corners = { cv::Point2f(warped.cols, 0),
                                          cv::Point2f(0, 0),
                                          cv::Point2f(0, warped.rows),
@@ -146,7 +150,9 @@ void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& conto
 
 void identifyLines(cv::Mat& input, cv::Mat& output)
 {
+
     /* Creates x and y gradient images from input */
+
     auto createGradientImages = [&] (cv::Mat& gradientX, cv::Mat& gradientY, int kernelSize = 25)
     {
         /* Converts image to grayscale and blurs it */
@@ -180,5 +186,25 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
 
     cv::Mat gradientX, gradientY;
     createGradientImages(gradientX, gradientY);
-    output = gradientY;
+
+    HoughAccumulator acc(gradientX, gradientY, M_PI / 720.0, 1);
+    acc.fill();
+    acc.normalize();
+    std::vector<Pixel*> lines = acc.getLines();
+
+    //Creating line image
+    output = input;
+    for(Pixel* line : lines)
+    {
+        double a = cos((*line).theta);
+        double b = sin((*line).theta);
+
+        double x0 = a * (*line).rho;
+        double y0 = b * (*line).rho;
+
+        cv::Point2i pt1((int) (y0 + input.size().height * a), (int) (x0 + input.size().width * (-b)));
+        cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
+
+        cv::line(output, pt1, pt2, cv::Scalar(255, 0, 255), 4);
+    }
 }
