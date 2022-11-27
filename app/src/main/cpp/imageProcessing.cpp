@@ -148,7 +148,7 @@ void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& conto
     cv::warpPerspective(input, warped, transform, warped.size());
 }
 
-void identifyLines(cv::Mat& input, cv::Mat& output)
+void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
 {
 
     /* Creates x and y gradient images from input */
@@ -165,17 +165,16 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
         /* Filters images with sobel kernel to create gradient images */
         auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
         {
-            cv::Mat_<float> sobelKernelX;
-            sobelKernelX << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
-                            (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
-                            (- 1.0f / 8.0f), 0, (1.0f / 8.0f);
-            cv::Mat_<float> sobelKernelY;
-            sobelKernelY << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
-                            0, 0, 0,
-                            (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f);
-
-            cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
-            cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
+            float kernelValuesX[9] = {  (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                                        (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                                        (- 1.0f / 8.0f), 0, (1.0f / 8.0f) };
+            cv::Mat sobelKernelX(3, 3, CV_32F, kernelValuesX);
+            float kernelValuesY[9] = {  (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                                        0, 0, 0,
+                                        (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f) };
+            cv::Mat sobelKernelY(3, 3, CV_32F, kernelValuesY);
+            cv::filter2D(preparedImage, gradientX, CV_8UC1, sobelKernelX);
+            cv::filter2D(preparedImage, gradientY, CV_8UC1, sobelKernelY);
         };
 
         cv::Mat preparedImage;
@@ -190,7 +189,7 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
     HoughAccumulator acc(gradientX, gradientY, M_PI / 720.0, 1);
     acc.fill();
     acc.normalize();
-    std::vector<Pixel*> lines = acc.getLines();
+    lines = acc.getLines();
 
     //Creating line image
     output = input;
@@ -206,5 +205,68 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
         cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
 
         cv::line(output, pt1, pt2, cv::Scalar(255, 0, 255), 4);
+    }
+}
+
+void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& intersections)
+{
+    auto getIntersection = [&] (Pixel& line1, Pixel& line2) -> cv::Point2i*
+    {
+        //Helper functions that returns true if two values are in threshold
+        auto isClose = [] (double value1, double value2, double threshold) -> bool
+        {
+            return abs(value1 - value2) < threshold;
+        };
+
+        //Lines do not have an intersection when they have the same angle
+        if(isClose(line1.theta, line2.theta, 0.2))
+        {
+            return NULL;
+        }
+        //If lines are not parallel they intersect at a 90 degree angle
+        else
+        {
+            if(line1.theta == 0)
+                return new cv::Point2i(line2.rho, line1.rho);
+            if(line2.theta == 0)
+                return new cv::Point2i(line1.rho, line2.rho);
+        }
+    };
+
+    auto intersectionAlreadyExists = [&] (cv::Point2i& intersection) -> bool
+    {
+        for(cv::Point2i* existingIntersection : intersections)
+        {
+            if(intersection.x == (*existingIntersection).x && intersection.y == (*existingIntersection).y)
+                return true;
+        }
+        return false;
+    };
+
+    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Lines: %d", lines.size());
+
+    //Comparing all lines with each other to find all intersections
+    for(Pixel* line1 : lines)
+    {
+        for(Pixel* line2 : lines)
+        {
+            cv::Point2i* intersection = getIntersection((*line1), (*line2));
+            if(intersection != NULL)
+            {
+                if(!intersectionAlreadyExists(*intersection))
+                {
+                    intersections.push_back(intersection);
+                }
+            }
+        }
+    }
+}
+
+void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& intersections)
+{
+    for(cv::Point2i* intersection : intersections)
+    {
+        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 255, 255), -1);
+
     }
 }
