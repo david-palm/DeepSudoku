@@ -44,5 +44,8 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat outputMatrix = inputMatrix;
     warpSudoku(inputMatrix, outputMatrix, convertedContour);
 
+    //Identifying lines
+    identifyLines(inputMatrix, outputMatrix);
+    
     matToBitmap(env, outputMatrix, outputBitmap, false);
 }
