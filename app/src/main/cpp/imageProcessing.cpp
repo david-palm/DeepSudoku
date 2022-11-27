@@ -165,16 +165,17 @@ void identifyLines(cv::Mat& input, cv::Mat& output)
         /* Filters images with sobel kernel to create gradient images */
         auto filterImage = [&] (cv::Mat& preparedImage, cv::Mat& gradientX, cv::Mat& gradientY)
         {
-            float kernelValuesX[9] = {  (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
-                                        (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
-                                        (- 1.0f / 8.0f), 0, (1.0f / 8.0f) };
-            cv::Mat sobelKernelX(3, 3, CV_32F, kernelValuesX);
-            float kernelValuesY[9] = {  (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
-                                        0, 0, 0,
-                                        (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f) };
-            cv::Mat sobelKernelY(3, 3, CV_32F, kernelValuesY);
-            cv::filter2D(preparedImage, gradientX, CV_8UC1, sobelKernelX);
-            cv::filter2D(preparedImage, gradientY, CV_8UC1, sobelKernelY);
+            cv::Mat_<float> sobelKernelX;
+            sobelKernelX << (- 1.0f / 8.0f), 0, (1.0f / 8.0f),
+                            (- 2.0f / 8.0f), 0, (2.0f / 8.0f),
+                            (- 1.0f / 8.0f), 0, (1.0f / 8.0f);
+            cv::Mat_<float> sobelKernelY;
+            sobelKernelY << (1.0f / 8.0f), (2.0f / 8.0f), (1.0f / 8.0f),
+                            0, 0, 0,
+                            (- 1.0f / 8.0f), (- 2.0f / 8.0f), (- 1.0f / 8.0f);
+
+            cv::filter2D(preparedImage, gradientX, -1, sobelKernelX);
+            cv::filter2D(preparedImage, gradientY, -1, sobelKernelY);
         };
 
         cv::Mat preparedImage;
