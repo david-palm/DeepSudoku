@@ -204,7 +204,7 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
         cv::Point2i pt1((int) (y0 + input.size().height * a), (int) (x0 + input.size().width * (-b)));
         cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
 
-        cv::line(output, pt1, pt2, cv::Scalar(255, 0, 255), 4);
+        cv::line(output, pt1, pt2, cv::Scalar(255, 0, 0), 4);
     }
 }
 
@@ -266,7 +266,27 @@ void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& inter
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 255, 255), -1);
+        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 0, 255), -1);
 
     }
+}
+
+void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections)[100])
+{
+    auto binarizeImage = [&] (cv::Mat& output, int gaussKernelSize = 41)
+    {
+        cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(output, output, cv::Size(gaussKernelSize, gaussKernelSize), 3);
+        cv::adaptiveThreshold(output, output, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+                              cv::THRESH_BINARY_INV, 199, 25);
+        cv::dilate(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
+        cv::erode(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
+    };
+
+    cv::Mat binaryImage;
+    binarizeImage(binaryImage);
+
+
+
+
 }
