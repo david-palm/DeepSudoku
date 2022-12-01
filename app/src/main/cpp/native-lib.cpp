@@ -49,15 +49,10 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     std::vector<Pixel*> lines;
     identifyLines(inputMatrix, outputMatrix, lines);
     //Finding intersections
-    std::vector<cv::Point2i*> intersections;
+    cv::Point2i* intersections[100];
     findIntersections(lines, intersections);
-    __android_log_print(ANDROID_LOG_ERROR, "TRACKERS", "Intersections: %d", intersections.size());
     //Displaying intersections
     displayIntersections(outputMatrix, intersections);
-    //Cut cells
-    cv::Mat cells[81];
-    cutCells(inputMatrix, cells, intersections);
-
     
     matToBitmap(env, outputMatrix, outputBitmap, false);
 }

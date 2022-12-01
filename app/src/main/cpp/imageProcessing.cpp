@@ -208,8 +208,9 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
     }
 }
 
-void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& intersections)
+bool findIntersections(std::vector<Pixel*>& lines, cv::Point2i* (&intersections)[100])
 {
+
     auto getIntersection = [&] (Pixel& line1, Pixel& line2) -> cv::Point2i*
     {
         //Helper functions that returns true if two values are in threshold
@@ -232,12 +233,12 @@ void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& in
                 return new cv::Point2i(line1.rho, line2.rho);
         }
     };
-
+    int numberOfIntersections = 0;
     auto intersectionAlreadyExists = [&] (cv::Point2i& intersection) -> bool
     {
-        for(cv::Point2i* existingIntersection : intersections)
+        for(int i = 0; i < numberOfIntersections; i++)
         {
-            if(intersection.x == (*existingIntersection).x && intersection.y == (*existingIntersection).y)
+            if(intersection.x == (*intersections[i]).x && intersection.y == (*intersections[i]).y)
                 return true;
         }
         return false;
@@ -251,18 +252,26 @@ void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& in
         for(Pixel* line2 : lines)
         {
             cv::Point2i* intersection = getIntersection((*line1), (*line2));
+
             if(intersection != NULL)
             {
+
                 if(!intersectionAlreadyExists(*intersection))
                 {
-                    intersections.push_back(intersection);
+                    intersections[numberOfIntersections] = intersection;
+                    numberOfIntersections++;
                 }
+
             }
+
         }
     }
+
+    return numberOfIntersections == 100;
+
 }
 
-void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& intersections)
+void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[100])
 {
     for(cv::Point2i* intersection : intersections)
     {
