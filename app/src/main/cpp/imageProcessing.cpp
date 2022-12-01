@@ -293,6 +293,33 @@ void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections
         cv::erode(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
     };
 
+    auto convertTo2dArray = [&] (cv::Point2i* (&sortedIntersections)[10][10])
+    {
+        auto sortByX = [] (cv::Point2i* point1, cv::Point2i* point2) -> bool
+        {
+            return (*point1).x < (*point2).x;
+        };
+
+        auto sortByY = [] (cv::Point2i* point1, cv::Point2i* point2) -> bool
+        {
+            return (*point1).y < (*point2).y;
+        };
+
+        //Sorting coordinates by y coordinate (x and y are flipped)
+        std::sort(std::begin(intersections), std::end(intersections), sortByX);
+        //Sorting half-sorted coordinates by row (x coordinate)
+        for(int row = 0; row < 10; row++)
+        {
+            for(int col = 0; col < 10; col++)
+            {
+                sortedIntersections[row][col] = intersections[10 * row + col];
+            }
+            std::sort(std::begin(sortedIntersections[row]), std::end(sortedIntersections[row]), sortByY);
+        }
+    };
+
     cv::Mat binaryImage;
     binarizeImage(binaryImage);
+    cv::Point2i* sortedIntersections[10][10];
+    convertTo2dArray(sortedIntersections);
 }

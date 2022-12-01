@@ -53,6 +53,10 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     findIntersections(lines, intersections);
     //Displaying intersections
     displayIntersections(outputMatrix, intersections);
+    //Cut cells
+    cv::Mat cells[81];
+    cutCells(inputMatrix, cells, intersections);
+
     
     matToBitmap(env, outputMatrix, outputBitmap, false);
 }
