@@ -204,7 +204,7 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
         cv::Point2i pt1((int) (y0 + input.size().height * a), (int) (x0 + input.size().width * (-b)));
         cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
 
-        cv::line(output, pt1, pt2, cv::Scalar(255, 0, 0), 4);
+        cv::line(output, pt1, pt2, cv::Scalar(75, 75, 75), 4);
     }
 }
 
@@ -266,10 +266,11 @@ void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& inter
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 0, 255), -1);
+        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 255, 0), -1);
 
     }
 }
+
 
 void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections)[100])
 {
@@ -285,8 +286,4 @@ void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections
 
     cv::Mat binaryImage;
     binarizeImage(binaryImage);
-
-
-
-
 }

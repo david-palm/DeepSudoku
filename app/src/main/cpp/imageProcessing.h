@@ -12,3 +12,4 @@ void warpSudoku(cv::Mat& input, cv::Mat& warped, std::vector<cv::Point2f>& conto
 void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines);
 void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& intersections);
 void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& intersections);
+void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections)[100]);
