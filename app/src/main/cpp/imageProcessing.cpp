@@ -275,13 +275,13 @@ void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[10
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 255, 0), -1);
+        cv::circle(inputOutput, (*intersection), 3, cv::Scalar(0, 255, 0), -1);
 
     }
 }
 
 
-void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections)[100])
+void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersections)[100])
 {
     auto binarizeImage = [&] (cv::Mat& output, int gaussKernelSize = 41)
     {
@@ -318,8 +318,35 @@ void cutCells(cv::Mat& input, cv::Mat (&cells)[81], cv::Point2i* (&intersections
         }
     };
 
+    auto cutImage = [](cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight)
+    {
+        // x and y coordinates are switched for the top left and bottom right points
+        for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
+        {
+            for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
+            {
+                output.at<uint8_t>(row, col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
+            }
+        }
+    };
+
     cv::Mat binaryImage;
     binarizeImage(binaryImage);
+
     cv::Point2i* sortedIntersections[10][10];
     convertTo2dArray(sortedIntersections);
+
+    //Cut image
+    for(int row = 0; row < 9; row++)
+    {
+        for(int col = 0; col < 9; col++)
+        {
+            int width = abs((*sortedIntersections[row + 1][col + 1]).y - (*sortedIntersections[row][col]).y);
+            int height = abs((*sortedIntersections[row + 1][col + 1]).x - (*sortedIntersections[row][col]).x);
+            cv::Mat* cell = new cv::Mat(height, width, CV_8UC1);
+            cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
+            cells[row * 9 + col] = cell;
+        }
+    }
+
 }

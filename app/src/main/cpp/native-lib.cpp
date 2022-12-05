@@ -54,9 +54,19 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     //Displaying intersections
     displayIntersections(outputMatrix, intersections);
     //Cut cells
-    cv::Mat cells[81];
+    cv::Mat* cells[81];
     cutCells(inputMatrix, cells, intersections);
+    //outputMatrix = (*cells[0]);
+    __android_log_print(ANDROID_LOG_ERROR, "Cells", "First cell dimensions: [%d, %d]", (*cells[11]).size().width, (*cells[11]).size().height);
 
-    
-    matToBitmap(env, outputMatrix, outputBitmap, false);
+    std::stringstream stringStream;
+    for(int col = 0; col < (*cells[11]).size().width; col++)
+    {
+        for(int row = 0; row < (*cells[11]).size().height; row++)
+        {
+            outputMatrix.at<uint8_t>(row, col * 4) = (*cells[11]).at<uint8_t>(row, col);
+        }
+    }
+    cv::circle(outputMatrix, cv::Point2i((*cells[11]).size().width, (*cells[11]).size().height), 4, cv::Scalar(255, 0, 0), -1);
+    matToBitmap(env, outputMatrix, outputBitmap , false);
 }
