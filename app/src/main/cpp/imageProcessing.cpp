@@ -204,12 +204,13 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
         cv::Point2i pt1((int) (y0 + input.size().height * a), (int) (x0 + input.size().width * (-b)));
         cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
 
-        cv::line(output, pt1, pt2, cv::Scalar(255, 0, 255), 4);
+        cv::line(output, pt1, pt2, cv::Scalar(75, 75, 75), 4);
     }
 }
 
-void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& intersections)
+bool findIntersections(std::vector<Pixel*>& lines, cv::Point2i* (&intersections)[100])
 {
+
     auto getIntersection = [&] (Pixel& line1, Pixel& line2) -> cv::Point2i*
     {
         //Helper functions that returns true if two values are in threshold
@@ -232,12 +233,12 @@ void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& in
                 return new cv::Point2i(line1.rho, line2.rho);
         }
     };
-
+    int numberOfIntersections = 0;
     auto intersectionAlreadyExists = [&] (cv::Point2i& intersection) -> bool
     {
-        for(cv::Point2i* existingIntersection : intersections)
+        for(int i = 0; i < numberOfIntersections; i++)
         {
-            if(intersection.x == (*existingIntersection).x && intersection.y == (*existingIntersection).y)
+            if(intersection.x == (*intersections[i]).x && intersection.y == (*intersections[i]).y)
                 return true;
         }
         return false;
@@ -251,22 +252,101 @@ void findIntersections(std::vector<Pixel*>& lines, std::vector<cv::Point2i*>& in
         for(Pixel* line2 : lines)
         {
             cv::Point2i* intersection = getIntersection((*line1), (*line2));
+
             if(intersection != NULL)
             {
+
                 if(!intersectionAlreadyExists(*intersection))
                 {
-                    intersections.push_back(intersection);
+                    intersections[numberOfIntersections] = intersection;
+                    numberOfIntersections++;
                 }
+
             }
+
         }
     }
+
+    return numberOfIntersections == 100;
+
 }
 
-void displayIntersections(cv::Mat& inputOutput, std::vector<cv::Point2i*>& intersections)
+void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[100])
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 25, cv::Scalar(0, 255, 255), -1);
+        cv::circle(inputOutput, (*intersection), 3, cv::Scalar(0, 255, 0), -1);
 
     }
+}
+
+
+void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersections)[100])
+{
+    auto binarizeImage = [&] (cv::Mat& output, int gaussKernelSize = 41)
+    {
+        cv::cvtColor(input, output, cv::COLOR_BGR2GRAY);
+        cv::GaussianBlur(output, output, cv::Size(gaussKernelSize, gaussKernelSize), 3);
+        cv::adaptiveThreshold(output, output, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+                              cv::THRESH_BINARY_INV, 199, 25);
+        cv::dilate(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
+        cv::erode(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
+    };
+
+    auto convertTo2dArray = [&] (cv::Point2i* (&sortedIntersections)[10][10])
+    {
+        auto sortByX = [] (cv::Point2i* point1, cv::Point2i* point2) -> bool
+        {
+            return (*point1).x < (*point2).x;
+        };
+
+        auto sortByY = [] (cv::Point2i* point1, cv::Point2i* point2) -> bool
+        {
+            return (*point1).y < (*point2).y;
+        };
+
+        //Sorting coordinates by y coordinate (x and y are flipped)
+        std::sort(std::begin(intersections), std::end(intersections), sortByX);
+        //Sorting half-sorted coordinates by row (x coordinate)
+        for(int row = 0; row < 10; row++)
+        {
+            for(int col = 0; col < 10; col++)
+            {
+                sortedIntersections[row][col] = intersections[10 * row + col];
+            }
+            std::sort(std::begin(sortedIntersections[row]), std::end(sortedIntersections[row]), sortByY);
+        }
+    };
+
+    auto cutImage = [](cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight)
+    {
+        // x and y coordinates are switched for the top left and bottom right points
+        for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
+        {
+            for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
+            {
+                output.at<uint8_t>(row, col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
+            }
+        }
+    };
+
+    cv::Mat binaryImage;
+    binarizeImage(binaryImage);
+
+    cv::Point2i* sortedIntersections[10][10];
+    convertTo2dArray(sortedIntersections);
+
+    //Cut image
+    for(int row = 0; row < 9; row++)
+    {
+        for(int col = 0; col < 9; col++)
+        {
+            int width = abs((*sortedIntersections[row + 1][col + 1]).y - (*sortedIntersections[row][col]).y);
+            int height = abs((*sortedIntersections[row + 1][col + 1]).x - (*sortedIntersections[row][col]).x);
+            cv::Mat* cell = new cv::Mat(height, width, CV_8UC1);
+            cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
+            cells[row * 9 + col] = cell;
+        }
+    }
+
 }
