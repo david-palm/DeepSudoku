@@ -3,6 +3,18 @@
 
 #include <android/log.h>
 
+void cutImage(cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight, cv::Point2i offset = cv::Point2i(0, 0))
+{
+    // x and y coordinates are switched for the top left and bottom right points
+    for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
+    {
+        for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
+        {
+            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
+        }
+    }
+};
+
 /* Identifies sudoku in input image and returns an array of four points that make up the sudoku.
  * Padding can be set to true in order to avoid cutting parts of the sudoku of when the page is warped.
  * KernelSize sets the height and width of the kernel in pixels that is used to blur the image with,
@@ -318,18 +330,6 @@ void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersection
         }
     };
 
-    auto cutImage = [](cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight)
-    {
-        // x and y coordinates are switched for the top left and bottom right points
-        for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
-        {
-            for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
-            {
-                output.at<uint8_t>(row, col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
-            }
-        }
-    };
-
     cv::Mat binaryImage;
     binarizeImage(binaryImage);
 
@@ -349,4 +349,89 @@ void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersection
         }
     }
 
+}
+
+void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
+{
+    for(int i = 0; i < 81; i++)
+    {
+        //Resizing cell
+        cv::Mat* cell = new cv::Mat(50, 50, CV_8UC1);
+        cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_AREA);
+        //Find all contours in cell
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::findContours((*cell), contours, hierarchy, cv::RETR_EXTERNAL,
+                         cv::CHAIN_APPROX_SIMPLE);
+
+
+        cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8UC1);
+        cv::Mat* digitContour = new cv::Mat();
+        //Iterating over all contours to find the digit contour
+        for(std::vector<cv::Point> contour : contours)
+        {
+            //Get bounding rectangle of contour to identify the digit contour
+            cv::Rect_<int> boundingRectangle = cv::boundingRect(contour);
+
+            if((boundingRectangle.height < 46) && (boundingRectangle.width < 45))
+            {
+                if((cv::contourArea(contour) > 70) && (430 < cv::contourArea(contour)))
+                {
+                    if((cv::arcLength(contour, true) > 59) && (cv::arcLength(contour, true) < 183))
+                    {
+                        double aspectRatio = (double) boundingRectangle.width / (double) boundingRectangle.height;
+                        if((aspectRatio > 0.2) && (aspectRatio < 9))
+                        {
+
+                            cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
+                            cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.height, boundingRectangle.y + boundingRectangle.width);
+
+                            if(boundingRectangle.height > 0 && boundingRectangle.width > 0)
+                            {
+                                digitContour = new cv::Mat(cv::Size(boundingRectangle.width, boundingRectangle.height), CV_8UC1);
+                                cutImage((*cell), (*digitContour), topLeft, bottomRight);
+                            }
+                            else
+                            {
+                                digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
+                                continue;
+                            }
+                            //cutImage(cell, (*digitContour), topLeft, bottomRight);
+                            cv::rectangle((*cell), topLeft, bottomRight, cv::Scalar(255, 255, 255), 2);
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        cv::Point2i offset((*cell).size() / 2 - (*digitContour).size() / 2);
+
+        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Offset(%d)[%d][%d]", i, offset.y, offset.x);
+        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Cell(%d)[%d][%d]", i, (*cell).size().width, (*cell).size().height);
+        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "DigitContour(%d)[%d][%d]", i, (*digitContour).size().width, (*digitContour).size().height);
+        //(*digit).setTo(cv::Scalar(0));
+        //cutImage((*digitContour), (*digit), cv::Point2i(0, 0), (*digitContour).size());
+
+        //Copying digitContour into digit
+        digit.setTo(cv::Scalar(0));
+        if(((*digitContour).size().width < 50) && ((*digitContour).size().width > 5) && (*digitContour).size().height > 0)
+        {
+            for(int col = 0; col < (*digitContour).size().width; col++)
+            {
+                for(int row = 0; row < (*digitContour).size().height; row++)
+                {
+                    if((*digitContour).at<uint8_t>(row, col) > 0)
+                        digit.at<uint8_t>(row + offset.y, col + offset.x) = (*digitContour).at<uint8_t>(row, col);
+                }
+            }
+        }
+        delete digitContour;
+        //Resizing digit for neural network
+        cv::Mat* resizedDigit = new cv::Mat(28, 28, CV_8UC1);
+        cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
+        digits[i] = resizedDigit;
+
+    }
 }
