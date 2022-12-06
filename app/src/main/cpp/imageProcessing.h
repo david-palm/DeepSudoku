@@ -13,3 +13,4 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines);
 bool findIntersections(std::vector<Pixel*>& lines, cv::Point2i* (&intersections)[100]);
 void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[100]);
 void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersections)[100]);
+void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81]);
