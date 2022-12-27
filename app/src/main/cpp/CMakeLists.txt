@@ -18,6 +18,11 @@ include_directories(${OpenCV_DIR}/jni/include)
 add_library( lib_opencv SHARED IMPORTED )
 set_target_properties(lib_opencv PROPERTIES IMPORTED_LOCATION ${OpenCV_DIR}/libs/${ANDROID_ABI}/libopencv_java4.so)
 
+target_include_directories("lib_opencv" INTERFACE "/home/david/FunctionalPlus/include")
+target_include_directories("lib_opencv" INTERFACE "/home/david/json/include")
+target_include_directories("lib_opencv" INTERFACE "/home/david/eigen")
+target_include_directories("lib_opencv" INTERFACE "/home/david/frugally-deep/include")
+
 add_library( # Sets the name of the library.
         deepsudoku
 
