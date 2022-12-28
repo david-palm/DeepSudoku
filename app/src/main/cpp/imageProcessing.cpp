@@ -6,11 +6,11 @@
 void cutImage(cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight, cv::Point2i offset = cv::Point2i(0, 0))
 {
     // x and y coordinates are switched for the top left and bottom right points
-    for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
+    for(int col = 0; col < abs(bottomRight.x - topLeft.x); col++)
     {
-        for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
+        for(int row = 0; row < abs(bottomRight.y- topLeft.y); row++)
         {
-            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
+            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.y, col + topLeft.x);
         }
     }
 };
@@ -287,7 +287,7 @@ void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[10
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 3, cv::Scalar(0, 255, 0), -1);
+        cv::circle(inputOutput, (*intersection), 10, cv::Scalar(0, 255, 0), -1);
 
     }
 }
@@ -358,6 +358,7 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
         //Resizing cell
         cv::Mat* cell = new cv::Mat(50, 50, CV_8UC1);
         cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_AREA);
+
         //Find all contours in cell
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
@@ -368,6 +369,7 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
         cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8UC1);
         cv::Mat* digitContour = new cv::Mat();
         //Iterating over all contours to find the digit contour
+        /*
         for(std::vector<cv::Point> contour : contours)
         {
             //Get bounding rectangle of contour to identify the digit contour
@@ -396,7 +398,6 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
                                 digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
                                 continue;
                             }
-                            //cutImage(cell, (*digitContour), topLeft, bottomRight);
                             cv::rectangle((*cell), topLeft, bottomRight, cv::Scalar(255, 255, 255), 2);
 
                             break;
@@ -427,11 +428,11 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
                 }
             }
         }
-        delete digitContour;
+        //delete digitContour;
         //Resizing digit for neural network
         cv::Mat* resizedDigit = new cv::Mat(28, 28, CV_8UC1);
         cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
-        digits[i] = resizedDigit;
-
+        */
+        digits[i] = cell;
     }
 }

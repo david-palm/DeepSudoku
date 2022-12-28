@@ -62,16 +62,29 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat* digits[81];
     cutDigits(cells, digits);
     __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "digits(3)[%d][%d]", (*digits[2]).size().width, (*digits[2]).size().height);
-    for(int col = 0; col < (*digits[2]).size().width; col++) {
-        for (int row = 0; row < (*digits[2]).size().height; row++) {
-            __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Test [%d][%d]", col, row);
-            outputMatrix.at<uint32_t>(row, col) = (*digits[2]).at<uint8_t>(row, col);
-            __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Bug");
-        }
-    }
 
+    //Displaying cut digits
+    int scaleFactor = 3;
+    for(int i = 0; i < 81; i++) {
+        for (int col = 0; col < (*digits[i]).size().width * scaleFactor; col++) {
+            for (int row = 0; row < (*digits[i]).size().height * scaleFactor; row++) {
+                outputMatrix.at<uint32_t>(row + (i / 9) * ((*digits[i]).size().height + 1) * scaleFactor, col + (i % 9) * ((*digits[i]).size().width + 1) * scaleFactor) = (*digits[i]).at<uint8_t>(row / scaleFactor, col / scaleFactor);
+                __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Bug");
+            }
+
+        }
+        outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
+    }
+/*
     const auto model = fdeep::load_model("fdeep_model.json");
-    __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Test 3");
+    const auto input = fdeep::tensor_from_bytes((*digits[2]).ptr(),
+                                                static_cast<std::size_t>((*digits[2]).rows),
+                                                static_cast<std::size_t>((*digits[2]).cols),
+                                                static_cast<std::size_t>((*digits[2]).channels()),
+                                                0.0f, 1.0f);
+    const auto result = model.predict_class({input});
+*/
+    //__android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "Predict 3rd cell: %s", result);
     cv::circle(outputMatrix, cv::Point2i((*digits[2]).size().width, (*digits[2]).size().height), 4, cv::Scalar(255, 0, 0), -1);
     matToBitmap(env, outputMatrix, outputBitmap , false);
 }
