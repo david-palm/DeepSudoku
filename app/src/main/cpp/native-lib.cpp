@@ -64,12 +64,11 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "digits(3)[%d][%d]", (*digits[2]).size().width, (*digits[2]).size().height);
 
     //Displaying cut digits
-    int scaleFactor = 3;
+    int scaleFactor = 5;
     for(int i = 0; i < 81; i++) {
         for (int col = 0; col < (*digits[i]).size().width * scaleFactor; col++) {
             for (int row = 0; row < (*digits[i]).size().height * scaleFactor; row++) {
-                outputMatrix.at<uint32_t>(row + (i / 9) * ((*digits[i]).size().height + 1) * scaleFactor, col + (i % 9) * ((*digits[i]).size().width + 1) * scaleFactor) = (*digits[i]).at<uint8_t>(row / scaleFactor, col / scaleFactor);
-                __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Bug");
+                outputMatrix.at<uint32_t>(row + (i % 9) * ((*digits[i]).size().height + 1) * scaleFactor, col + (i / 9) * ((*digits[i]).size().width + 1) * scaleFactor) = (*digits[i]).at<uint8_t>(row / scaleFactor, col / scaleFactor);
             }
 
         }
