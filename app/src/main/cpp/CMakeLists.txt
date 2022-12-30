@@ -33,7 +33,8 @@ add_library( # Sets the name of the library.
         native-lib.cpp
         utils.cpp
         imageProcessing.cpp
-        HoughAccumulator.cpp)
+        HoughAccumulator.cpp
+        sudokuSolving.cpp)
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

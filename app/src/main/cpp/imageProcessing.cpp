@@ -216,7 +216,7 @@ void identifyLines(cv::Mat& input, cv::Mat& output, std::vector<Pixel*>& lines )
         cv::Point2i pt1((int) (y0 + input.size().height * a), (int) (x0 + input.size().width * (-b)));
         cv::Point2i pt2((int) (y0 - input.size().height * a), (int) (x0 - input.size().width * (-b)));
 
-        cv::line(output, pt1, pt2, cv::Scalar(75, 75, 75), 4);
+        cv::line(output, pt1, pt2, cv::Scalar(0, 0, 205), 4);
     }
 }
 

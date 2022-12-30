@@ -68,7 +68,7 @@ class ImageViewFragment : Fragment() {
         //Process image by calling native code
         solveSudoku(assetManager, image, output)
         //Process image by calling native code
-        solveSudoku(assetManager, image, output)
+        //solveSudoku(assetManager, image, output)
         viewBinding.imageView.setImageBitmap(output)
     }
 

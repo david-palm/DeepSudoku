@@ -12,6 +12,7 @@
 #include <android/asset_manager.h>
 #include <android/asset_manager_jni.h>
 #include "kerasModel.h"
+#include "sudokuSolving.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
@@ -67,6 +68,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "digits(3)[%d][%d]", (*digits[2]).size().width, (*digits[2]).size().height);
 
     //Displaying cut digits
+    /*
     int scaleFactor = 5;
     for(int i = 0; i < 81; i++) {
         for (int col = 0; col < (*digits[i]).size().width * scaleFactor; col++) {
@@ -77,7 +79,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
         }
         outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
     }
-
+    */
     const auto fdeepModel = fdeep::read_model_from_string(model);
     int predictions[9][9];
     for(int row = 0; row < 9; row++) {
@@ -96,17 +98,22 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
                     break;
                 }
             }
-            predictions[col][row] = prediction + 1;
+            predictions[row][col] = prediction + 1;
         }
     }
-
+    printSudoku(predictions);
+    solveSudoku(predictions, predictions);
+    printSudoku(predictions);
+/*
     for(int row = 0; row < 9; row++)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "[%d][%d][%d][%d][%d][%d][%d][%d][%d]",
+        if(row == 3 || row == 6)
+            __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "-----------------------------------------");
+        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "[%d][%d][%d] | [%d][%d][%d] | [%d][%d][%d]",
                             predictions[0][row], predictions[1][row], predictions[2][row], predictions[3][row], predictions[4][row],
                             predictions[5][row], predictions[6][row], predictions[7][row], predictions[8][row]);
     }
-
+*/
 
     matToBitmap(env, outputMatrix, outputBitmap , false);
 }
