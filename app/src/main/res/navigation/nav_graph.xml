@@ -21,5 +21,14 @@
         <action
             android:id="@+id/action_imageViewFragment_to_imageCaptureFragment"
             app:destination="@id/imageCaptureFragment" />
+        <action
+            android:id="@+id/action_imageViewFragment_to_solutionViewFragment"
+            app:destination="@id/solutionViewFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/solutionViewFragment"
+        android:name="com.example.deepsudoku.SolutionViewFragment"
+        android:label="fragment_solution_view"
+        tools:layout="@layout/fragment_solution_view" >
     </fragment>
 </navigation>

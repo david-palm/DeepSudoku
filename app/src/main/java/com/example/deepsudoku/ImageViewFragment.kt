@@ -70,6 +70,8 @@ class ImageViewFragment : Fragment() {
         //Process image by calling native code
         //solveSudoku(assetManager, image, output)
         viewBinding.imageView.setImageBitmap(output)
+        Navigation.findNavController(requireView()).navigate(
+            R.id.action_imageViewFragment_to_solutionViewFragment, Bundle())
     }
 
     private fun deleteImage(){
