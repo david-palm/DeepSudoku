@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -52,10 +53,14 @@ class ImageViewFragment : Fragment() {
 
     private fun solveSudoku(){
         var output: Bitmap = image.copy(image.config, true)
+        var sudoku: IntArray = IntArray(81);
+        var solvedSudoku: IntArray = IntArray(81);
         //Process image by calling native code
-        solveSudoku(assetManager, image, output)
+        solveSudoku(image, output, sudoku, solvedSudoku)
         viewBinding.imageView.setImageBitmap(output)
-        Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_solutionViewFragment, Bundle())
+        val bundle = Bundle()
+        bundle.putIntegerArrayList("SolvedSudoku", solvedSudoku.toCollection(ArrayList()))
+        Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_solutionViewFragment, bundle)
     }
 
     private fun deleteImage(){
@@ -64,5 +69,5 @@ class ImageViewFragment : Fragment() {
     }
 
     external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
-    external fun solveSudoku(assetManager : AssetManager, inputImage: Bitmap, outputImage: Bitmap)
+    external fun solveSudoku(inputImage: Bitmap, outputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
 }

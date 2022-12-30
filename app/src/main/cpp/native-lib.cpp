@@ -33,7 +33,7 @@ Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jobject assetManager, jobject inputBitmap, jobject outputBitmap)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap, jintArray sudoku, jintArray solvedSudoku)
 {
     //Converting Bitmap to matrix
     cv::Mat inputMatrix;
@@ -104,16 +104,16 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     printSudoku(predictions);
     solveSudoku(predictions, predictions);
     printSudoku(predictions);
-/*
+
     for(int row = 0; row < 9; row++)
     {
-        if(row == 3 || row == 6)
-            __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "-----------------------------------------");
-        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "[%d][%d][%d] | [%d][%d][%d] | [%d][%d][%d]",
-                            predictions[0][row], predictions[1][row], predictions[2][row], predictions[3][row], predictions[4][row],
-                            predictions[5][row], predictions[6][row], predictions[7][row], predictions[8][row]);
+        for(int col = 0; col < 9; col++)
+        {
+            jint elements[] = { predictions[row][col] };
+            env->SetIntArrayRegion(solvedSudoku, row * 9 + col, 1,
+                                   elements);
+        }
     }
-*/
 
     matToBitmap(env, outputMatrix, outputBitmap , false);
 }
