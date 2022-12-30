@@ -79,16 +79,34 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     }
 
     const auto fdeepModel = fdeep::read_model_from_string(model);
-            //const auto model = fdeep::load_model("fdeep_model.json");
-    const auto input = fdeep::tensor_from_bytes((*digits[2]).ptr(),
-                                                static_cast<std::size_t>((*digits[2]).rows),
-                                                static_cast<std::size_t>((*digits[2]).cols),
-                                                static_cast<std::size_t>((*digits[2]).channels()),
-                                                0.0f, 1.0f);
-    const auto result = fdeepModel.predict_class({input});
+    int predictions[9][9];
+    for(int row = 0; row < 9; row++) {
+        for(int col = 0; col < 9; col++) {
+            const auto input = fdeep::tensor_from_bytes((*digits[row + col * 9]).ptr(),
+                                                        static_cast<std::size_t>((*digits[row + col * 9]).rows),
+                                                        static_cast<std::size_t>((*digits[row + col * 9]).cols),
+                                                        static_cast<std::size_t>((*digits[row + col * 9]).channels()),
+                                                        0.0f, 1.0f);
+            const auto result = fdeepModel.predict({input});
+            const std::vector<float> vec = result[0].to_vector();
+            int prediction = -1;
+            for (int i = 0; i < 9; i++) {
+                if (vec[i] > 0.7f) {
+                    prediction = i;
+                    break;
+                }
+            }
+            predictions[col][row] = prediction + 1;
+        }
+    }
 
+    for(int row = 0; row < 9; row++)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "[%d][%d][%d][%d][%d][%d][%d][%d][%d]",
+                            predictions[0][row], predictions[1][row], predictions[2][row], predictions[3][row], predictions[4][row],
+                            predictions[5][row], predictions[6][row], predictions[7][row], predictions[8][row]);
+    }
 
-    //__android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "Predict 3rd cell: %s", result);
 
     matToBitmap(env, outputMatrix, outputBitmap , false);
 }
