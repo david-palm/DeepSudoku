@@ -58,12 +58,10 @@ int solveSudoku(int (&input)[9][9], int (&output)[9][9])
 {
     if(!solve(input, 0, 0))
     {
-        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "Sudoku cannot be solved!");
         return -1;
     }
     else
     {
-        __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "Sudoku solved!");
         return 0;
     }
 }
