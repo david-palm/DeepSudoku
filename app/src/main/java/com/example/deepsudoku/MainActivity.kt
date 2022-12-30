@@ -45,7 +45,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
      * A native method that is implemented by the 'deepsudoku' native library,
      * which is packaged with this application.
      */
-    external fun stringFromJNI(): String
 
 
 }

@@ -8,7 +8,10 @@
 #include "imageProcessing.h"
 
 #include <fdeep/fdeep.hpp>
-
+#include <unistd.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include "kerasModel.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
@@ -29,7 +32,7 @@ Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz,  jobject inputBitmap, jobject outputBitmap)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jobject assetManager, jobject inputBitmap, jobject outputBitmap)
 {
     //Converting Bitmap to matrix
     cv::Mat inputMatrix;
@@ -74,16 +77,18 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
         }
         outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
     }
-/*
-    const auto model = fdeep::load_model("fdeep_model.json");
+
+    const auto fdeepModel = fdeep::read_model_from_string(model);
+            //const auto model = fdeep::load_model("fdeep_model.json");
     const auto input = fdeep::tensor_from_bytes((*digits[2]).ptr(),
                                                 static_cast<std::size_t>((*digits[2]).rows),
                                                 static_cast<std::size_t>((*digits[2]).cols),
                                                 static_cast<std::size_t>((*digits[2]).channels()),
                                                 0.0f, 1.0f);
-    const auto result = model.predict_class({input});
-*/
+    const auto result = fdeepModel.predict_class({input});
+
+
     //__android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "Predict 3rd cell: %s", result);
-    cv::circle(outputMatrix, cv::Point2i((*digits[2]).size().width, (*digits[2]).size().height), 4, cv::Scalar(255, 0, 0), -1);
+
     matToBitmap(env, outputMatrix, outputBitmap , false);
 }

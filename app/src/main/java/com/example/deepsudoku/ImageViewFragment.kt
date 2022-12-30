@@ -1,6 +1,8 @@
 package com.example.deepsudoku
 
 import android.content.ContentResolver
+import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
@@ -13,6 +15,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
 import androidx.navigation.Navigation
 import com.example.deepsudoku.databinding.FragmentImageViewBinding
@@ -24,6 +27,7 @@ class ImageViewFragment : Fragment() {
     private var _viewBinding: FragmentImageViewBinding? = null
     private val viewBinding: FragmentImageViewBinding get() = _viewBinding!!
     private var imageUri: Uri? = null
+    lateinit var assetManager : AssetManager
     lateinit var image: Bitmap
 
 
@@ -36,6 +40,8 @@ class ImageViewFragment : Fragment() {
         //Displaying image
         imageUri = arguments?.getParcelable<Uri>("ImageUri")
         viewBinding.imageView.setImageURI(imageUri)
+
+        assetManager = resources.assets
 
         //Set button listeners
         viewBinding.imageAcceptButton.setOnClickListener { solveSudoku() }
@@ -60,9 +66,9 @@ class ImageViewFragment : Fragment() {
     private fun solveSudoku(){
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        solveSudoku(image, output)
+        solveSudoku(assetManager, image, output)
         //Process image by calling native code
-        solveSudoku(image, output)
+        solveSudoku(assetManager, image, output)
         viewBinding.imageView.setImageBitmap(output)
     }
 
@@ -73,7 +79,7 @@ class ImageViewFragment : Fragment() {
     }
 
     external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
-    external fun solveSudoku(inputImage: Bitmap, outputImage: Bitmap)
+    external fun solveSudoku(assetManager : AssetManager, inputImage: Bitmap, outputImage: Bitmap)
 
     companion object {
 
