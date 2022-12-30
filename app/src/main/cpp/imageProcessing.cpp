@@ -6,11 +6,11 @@
 void cutImage(cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight, cv::Point2i offset = cv::Point2i(0, 0))
 {
     // x and y coordinates are switched for the top left and bottom right points
-    for(int col = 0; col < abs(bottomRight.y - topLeft.y); col++)
+    for(int col = 0; col < abs(bottomRight.x - topLeft.x); col++)
     {
-        for(int row = 0; row < abs(bottomRight.x - topLeft.x); row++)
+        for(int row = 0; row < abs(bottomRight.y- topLeft.y); row++)
         {
-            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.x, col + topLeft.y);
+            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.y, col + topLeft.x);
         }
     }
 };
@@ -287,7 +287,7 @@ void displayIntersections(cv::Mat& inputOutput, cv::Point2i* (&intersections)[10
 {
     for(cv::Point2i* intersection : intersections)
     {
-        cv::circle(inputOutput, (*intersection), 3, cv::Scalar(0, 255, 0), -1);
+        cv::circle(inputOutput, (*intersection), 10, cv::Scalar(0, 255, 0), -1);
 
     }
 }
@@ -301,8 +301,8 @@ void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersection
         cv::GaussianBlur(output, output, cv::Size(gaussKernelSize, gaussKernelSize), 3);
         cv::adaptiveThreshold(output, output, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
                               cv::THRESH_BINARY_INV, 199, 25);
-        cv::dilate(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
-        cv::erode(output, output, cv::Mat::ones(5, 5, CV_8UC1), cv::Point2i(-1, -1), 2);
+        cv::dilate(output, output, cv::Mat::ones(5, 5, CV_8U), cv::Point2i(-1, -1), 2);
+        cv::erode(output, output, cv::Mat::ones(5, 5, CV_8U), cv::Point2i(-1, -1), 2);
     };
 
     auto convertTo2dArray = [&] (cv::Point2i* (&sortedIntersections)[10][10])
@@ -356,36 +356,33 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
     for(int i = 0; i < 81; i++)
     {
         //Resizing cell
-        cv::Mat* cell = new cv::Mat(50, 50, CV_8UC1);
-        cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_AREA);
+        cv::Mat* cell = new cv::Mat(50, 50, CV_8U);
+        cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_CUBIC);
         //Find all contours in cell
         std::vector<std::vector<cv::Point>> contours;
         std::vector<cv::Vec4i> hierarchy;
-        cv::findContours((*cell), contours, hierarchy, cv::RETR_EXTERNAL,
+        cv::findContours((*cell), contours, hierarchy, cv::RETR_TREE,
                          cv::CHAIN_APPROX_SIMPLE);
 
-
-        cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8UC1);
+        cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8U);
         cv::Mat* digitContour = new cv::Mat();
+
         //Iterating over all contours to find the digit contour
-        for(std::vector<cv::Point> contour : contours)
+        for(std::vector<cv::Point>& contour: contours)
         {
             //Get bounding rectangle of contour to identify the digit contour
             cv::Rect_<int> boundingRectangle = cv::boundingRect(contour);
-
-            if((boundingRectangle.height < 46) && (boundingRectangle.width < 45))
+            cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
+            cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.width, boundingRectangle.y + boundingRectangle.height);
+            if((boundingRectangle.height < 46.0) && (boundingRectangle.width < 45.0))
             {
-                if((cv::contourArea(contour) > 70) && (430 < cv::contourArea(contour)))
+                if( ((float) cv::contourArea(contour) > 70.0f) && (430.0f > (float) cv::contourArea(contour)))
                 {
-                    if((cv::arcLength(contour, true) > 59) && (cv::arcLength(contour, true) < 183))
+                    if((cv::arcLength(contour, true) > 59.0f) && (cv::arcLength(contour, true) < 183.0f))
                     {
                         double aspectRatio = (double) boundingRectangle.width / (double) boundingRectangle.height;
-                        if((aspectRatio > 0.2) && (aspectRatio < 9))
+                        if((aspectRatio > 0.2) && (aspectRatio < 9.0))
                         {
-
-                            cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
-                            cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.height, boundingRectangle.y + boundingRectangle.width);
-
                             if(boundingRectangle.height > 0 && boundingRectangle.width > 0)
                             {
                                 digitContour = new cv::Mat(cv::Size(boundingRectangle.width, boundingRectangle.height), CV_8UC1);
@@ -396,9 +393,7 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
                                 digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
                                 continue;
                             }
-                            //cutImage(cell, (*digitContour), topLeft, bottomRight);
                             cv::rectangle((*cell), topLeft, bottomRight, cv::Scalar(255, 255, 255), 2);
-
                             break;
                         }
                     }
@@ -407,12 +402,6 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
         }
 
         cv::Point2i offset((*cell).size() / 2 - (*digitContour).size() / 2);
-
-        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Offset(%d)[%d][%d]", i, offset.y, offset.x);
-        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "Cell(%d)[%d][%d]", i, (*cell).size().width, (*cell).size().height);
-        __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "DigitContour(%d)[%d][%d]", i, (*digitContour).size().width, (*digitContour).size().height);
-        //(*digit).setTo(cv::Scalar(0));
-        //cutImage((*digitContour), (*digit), cv::Point2i(0, 0), (*digitContour).size());
 
         //Copying digitContour into digit
         digit.setTo(cv::Scalar(0));
@@ -431,7 +420,7 @@ void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
         //Resizing digit for neural network
         cv::Mat* resizedDigit = new cv::Mat(28, 28, CV_8UC1);
         cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
-        digits[i] = resizedDigit;
 
+        digits[i] = resizedDigit;
     }
 }
