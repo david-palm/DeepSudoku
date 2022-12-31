@@ -101,6 +101,15 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
             predictions[row][col] = prediction + 1;
         }
     }
+    for(int row = 0; row < 9; row++)
+    {
+        for(int col = 0; col < 9; col++)
+        {
+            jint elements[] = { predictions[row][col] };
+            env->SetIntArrayRegion(sudoku, row * 9 + col, 1,
+                                   elements);
+        }
+    }
     printSudoku(predictions);
     solveSudoku(predictions, predictions);
     printSudoku(predictions);

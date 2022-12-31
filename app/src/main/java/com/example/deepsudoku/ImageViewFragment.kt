@@ -59,6 +59,7 @@ class ImageViewFragment : Fragment() {
         solveSudoku(image, output, sudoku, solvedSudoku)
         viewBinding.imageView.setImageBitmap(output)
         val bundle = Bundle()
+        bundle.putIntegerArrayList("Sudoku", sudoku.toCollection(ArrayList()))
         bundle.putIntegerArrayList("SolvedSudoku", solvedSudoku.toCollection(ArrayList()))
         Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_solutionViewFragment, bundle)
     }
