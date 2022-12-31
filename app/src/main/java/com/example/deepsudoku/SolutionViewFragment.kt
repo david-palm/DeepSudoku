@@ -38,7 +38,7 @@ class SolutionViewFragment : Fragment() {
         if(sudoku.get(3) > 0)
             viewBinding.cell03.setTypeface(null, Typeface.BOLD)
         viewBinding.cell04.text = solvedSudoku.get(4).toString()
-        if(sudoku.get(0) > 0)
+        if(sudoku.get(4) > 0)
             viewBinding.cell04.setTypeface(null, Typeface.BOLD)
         viewBinding.cell05.text = solvedSudoku.get(5).toString()
         if(sudoku.get(5) > 0)
