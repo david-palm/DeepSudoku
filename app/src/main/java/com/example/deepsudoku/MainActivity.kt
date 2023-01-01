@@ -46,5 +46,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
      * which is packaged with this application.
      */
 
+    external fun initKerasModel() : Long
+
 
 }

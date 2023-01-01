@@ -80,7 +80,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
         outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
     }
     */
-    const auto fdeepModel = fdeep::read_model_from_string(model);
+
     int predictions[9][9];
     for(int row = 0; row < 9; row++) {
         for(int col = 0; col < 9; col++) {
@@ -125,4 +125,10 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     }
 
     matToBitmap(env, outputMatrix, outputBitmap , false);
+}
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_deepsudoku_MainActivity_initKerasModel(JNIEnv *env, jobject thiz) {
+    const fdeep::model fdeepModel = fdeep::read_model_from_string(model);
+    return (long) new fdeep::model(fdeepModel);
 }
