@@ -52,11 +52,12 @@ class ImageViewFragment : Fragment() {
     }
 
     private fun solveSudoku(){
+        kerasModelPointer;
         var output: Bitmap = image.copy(image.config, true)
         var sudoku: IntArray = IntArray(81);
         var solvedSudoku: IntArray = IntArray(81);
         //Process image by calling native code
-        solveSudoku(image, output, sudoku, solvedSudoku)
+        solveSudoku(kerasModelPointer, image, output, sudoku, solvedSudoku)
         viewBinding.imageView.setImageBitmap(output)
         val bundle = Bundle()
         bundle.putIntegerArrayList("Sudoku", sudoku.toCollection(ArrayList()))
@@ -70,5 +71,5 @@ class ImageViewFragment : Fragment() {
     }
 
     external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
-    external fun solveSudoku(inputImage: Bitmap, outputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
+    external fun solveSudoku(kerasModelPointer : Long, inputImage: Bitmap, outputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
 }

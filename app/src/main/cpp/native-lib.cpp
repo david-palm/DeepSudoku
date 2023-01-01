@@ -33,7 +33,7 @@ Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap, jintArray sudoku, jintArray solvedSudoku)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong kerasModelPointer, jobject inputBitmap, jobject outputBitmap, jintArray sudoku, jintArray solvedSudoku)
 {
     //Converting Bitmap to matrix
     cv::Mat inputMatrix;
@@ -80,7 +80,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
         outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
     }
     */
-    const auto fdeepModel = fdeep::read_model_from_string(model);
+    fdeep::model* kerasModel = (fdeep::model*) kerasModelPointer;
     int predictions[9][9];
     for(int row = 0; row < 9; row++) {
         for(int col = 0; col < 9; col++) {
@@ -89,7 +89,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
                                                         static_cast<std::size_t>((*digits[row + col * 9]).cols),
                                                         static_cast<std::size_t>((*digits[row + col * 9]).channels()),
                                                         0.0f, 1.0f);
-            const auto result = fdeepModel.predict({input});
+            const auto result = kerasModel->predict({input});
             const std::vector<float> vec = result[0].to_vector();
             int prediction = -1;
             for (int i = 0; i < 9; i++) {
@@ -125,4 +125,11 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     }
 
     matToBitmap(env, outputMatrix, outputBitmap , false);
+}
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_deepsudoku_MainActivityKt_initKerasModel(JNIEnv *env, jclass clazz) {
+    const fdeep::model fdeepModel = fdeep::read_model_from_string(model);
+    return (long) new fdeep::model(fdeepModel);
 }

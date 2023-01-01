@@ -1,6 +1,5 @@
 package com.example.deepsudoku
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +9,9 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import org.opencv.android.OpenCVLoader
 
 typealias LumaListener = (luma: Double) -> Unit
+var kerasModelPointer : Long = initKerasModel()
+
+external fun initKerasModel(): Long
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private lateinit var navController: NavController
@@ -24,8 +26,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         super.onCreate(savedInstanceState)
 
         // Retrieve NavController from the NavHostFragment
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
         if (OpenCVLoader.initDebug()) {
@@ -41,10 +42,5 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
-    /**
-     * A native method that is implemented by the 'deepsudoku' native library,
-     * which is packaged with this application.
-     */
-
 
 }
