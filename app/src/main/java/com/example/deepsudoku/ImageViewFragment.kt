@@ -12,7 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.Navigation
 import com.example.deepsudoku.databinding.FragmentImageViewBinding
-
+import kotlin.time.ExperimentalTime
 
 
 class ImageViewFragment : Fragment() {
@@ -51,14 +51,16 @@ class ImageViewFragment : Fragment() {
         viewBinding.imageView.setImageBitmap(output)
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun solveSudoku(){
-        kerasModelPointer;
-        var output: Bitmap = image.copy(image.config, true)
         var sudoku: IntArray = IntArray(81);
         var solvedSudoku: IntArray = IntArray(81);
+
         //Process image by calling native code
-        solveSudoku(kerasModelPointer, image, output, sudoku, solvedSudoku)
-        viewBinding.imageView.setImageBitmap(output)
+        val time = kotlin.time.measureTimedValue { solveSudoku(kerasModelPointer, image, sudoku, solvedSudoku) }
+
+
+        Log.d("Timer", "Solving sudoku took: " + time.toString())
         val bundle = Bundle()
         bundle.putIntegerArrayList("Sudoku", sudoku.toCollection(ArrayList()))
         bundle.putIntegerArrayList("SolvedSudoku", solvedSudoku.toCollection(ArrayList()))
@@ -71,5 +73,5 @@ class ImageViewFragment : Fragment() {
     }
 
     external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
-    external fun solveSudoku(kerasModelPointer : Long, inputImage: Bitmap, outputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
+    external fun solveSudoku(kerasModelPointer : Long, inputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
 }

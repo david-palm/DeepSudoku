@@ -9,7 +9,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import org.opencv.android.OpenCVLoader
 
 typealias LumaListener = (luma: Double) -> Unit
-var kerasModelPointer : Long = initKerasModel()
+var kerasModelPointer : Long = 0
 
 external fun initKerasModel(): Long
 
@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     // Used to load the 'deepsudoku' library on application startup.
     init {
         System.loadLibrary("deepsudoku")
-        System.loadLibrary("opencv_java4");
+        System.loadLibrary("opencv_java4")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +30,11 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         navController = navHostFragment.navController
 
         if (OpenCVLoader.initDebug()) {
-            Log.d("Test", "OpenCV succesfully loaded!")
+            Log.d("OpenCV", "OpenCV succesfully loaded!")
         }
+
+        kerasModelPointer = initKerasModel()
+
         // Set up the action bar for use with the NavController
         setupActionBarWithNavController(navController)
     }
