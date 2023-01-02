@@ -1,5 +1,6 @@
 #include "imageProcessing.h"
 #include "HoughAccumulator.h"
+#include "performance.h"
 
 #include <android/log.h>
 
@@ -353,6 +354,7 @@ void cutCells(cv::Mat& input, cv::Mat* (&cells)[81], cv::Point2i* (&intersection
 
 void cutDigits(cv::Mat* (&cells)[81], cv::Mat* (&digits)[81])
 {
+    Timer("Cut digits");
     for(int i = 0; i < 81; i++)
     {
         //Resizing cell
