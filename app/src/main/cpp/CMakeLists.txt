@@ -33,7 +33,7 @@ add_library( # Sets the name of the library.
         native-lib.cpp
         utils/cvUtils.cpp
         HoughAccumulator.cpp
-        sudokuSolving.cpp
+        SudokuSolver.cpp
         performance.h
         ImageProcessor.cpp)
 

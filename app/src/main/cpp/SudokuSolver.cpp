@@ -1,9 +1,11 @@
 #include <jni.h>
 #include <android/log.h>
 
-#include "sudokuSolving.h"
 
-bool isSafe(int (&sudoku)[9][9], int row, int col, int value)
+#include "SudokuSolver.h"
+
+SudokuSolver::SudokuSolver() {}
+bool SudokuSolver::isSafe(int (&sudoku)[9][9], int row, int col, int value)
 {
     //Checking if number is already in row
     for(int i = 0; i < 9; i++)
@@ -27,7 +29,7 @@ bool isSafe(int (&sudoku)[9][9], int row, int col, int value)
     return true;
 }
 
-bool solve(int (&sudoku)[9][9], int row, int col)
+bool SudokuSolver::solveCell(int (&sudoku)[9][9], int row, int col)
 {
     if(row == 8 && col == 9)
         return true;
@@ -39,14 +41,14 @@ bool solve(int (&sudoku)[9][9], int row, int col)
     }
 
     if(sudoku[row][col] > 0)
-        return solve(sudoku, row, col + 1);
+        return solveCell(sudoku, row, col + 1);
 
     for(int digit = 1; digit <= 9; digit++)
     {
         if(isSafe(sudoku, row, col, digit)) {
             sudoku[row][col] = digit;
 
-            if (solve(sudoku, row, col + 1))
+            if (solveCell(sudoku, row, col + 1))
                 return true;
         }
         sudoku[row][col] = 0;
@@ -54,9 +56,9 @@ bool solve(int (&sudoku)[9][9], int row, int col)
     return false;
 }
 
-int solveSudoku(int (&input)[9][9], int (&output)[9][9])
+int SudokuSolver::solve(int (&input)[9][9], int (&output)[9][9])
 {
-    if(!solve(input, 0, 0))
+    if(!solveCell(input, 0, 0))
     {
         return -1;
     }

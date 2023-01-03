@@ -11,7 +11,7 @@
 #include "utils/cvUtils.h"
 #include "ImageProcessor.h"
 #include "kerasModel.h"
-#include "sudokuSolving.h"
+#include "SudokuSolver.h"
 #include "performance.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
@@ -48,23 +48,6 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat* digits[81];
     imageProcessor.cutDigits(digits);
 
-
-
-    __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "digits(3)[%d][%d]", (*digits[2]).size().width, (*digits[2]).size().height);
-
-    //Displaying cut digits
-    /*
-    int scaleFactor = 5;
-    for(int i = 0; i < 81; i++) {
-        for (int col = 0; col < (*digits[i]).size().width * scaleFactor; col++) {
-            for (int row = 0; row < (*digits[i]).size().height * scaleFactor; row++) {
-                outputMatrix.at<uint32_t>(row + (i % 9) * ((*digits[i]).size().height + 1) * scaleFactor, col + (i / 9) * ((*digits[i]).size().width + 1) * scaleFactor) = (*digits[i]).at<uint8_t>(row / scaleFactor, col / scaleFactor);
-            }
-
-        }
-        outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
-    }
-    */
     fdeep::model* kerasModel = (fdeep::model*) kerasModelPointer;
 
     int predictions[9][9];
@@ -105,7 +88,8 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
                                    elements);
         }
     }
-    solveSudoku(predictions, predictions);
+    SudokuSolver solver = SudokuSolver();
+    solver.solve(predictions, predictions);
     for(int row = 0; row < 9; row++)
     {
         for(int col = 0; col < 9; col++)
