@@ -4,7 +4,7 @@
 #include <android/bitmap.h>
 #include <android/log.h>
 
-#include "utils/CvUtils.h"
+#include "utils/cvUtils.h"
 #include "imageProcessing.h"
 
 #include <fdeep/fdeep.hpp>
@@ -43,34 +43,13 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat inputMatrix;
     cvUtils::bitmapToMat(env, inputBitmap, inputMatrix, 0);
 
-    //Identifying sudoku
-    cv::Mat previewMatrix;
-    std::vector<cv::Point> contour;
-    identifySudoku(inputMatrix, previewMatrix, contour);
-
-
-    std::vector<cv::Point2f> convertedContour;
-    cvUtils::intToFloatContour(contour, convertedContour);
-
-    //Cutting sudoku
-    cv::Mat outputMatrix = inputMatrix;
-    warpSudoku(inputMatrix, outputMatrix, convertedContour);
-
-    //Identifying lines
-    std::vector<Pixel*> lines;
-    identifyLines(inputMatrix, outputMatrix, lines);
-
-    //Finding intersections
-    cv::Point2i* intersections[100];
-    findIntersections(lines, intersections);
-
-    //Cut cells
-    cv::Mat* cells[81];
-    cutCells(inputMatrix, cells, intersections);
-
+    cv::Mat output;
+    ImageProcessor imageProcessor(inputMatrix);
+    imageProcessor.previewSudoku(output);
 
     cv::Mat* digits[81];
-    cutDigits(cells, digits);
+    imageProcessor.cutDigits(digits);
+
 
 
     __android_log_print(ANDROID_LOG_ERROR, "cutDigits", "digits(3)[%d][%d]", (*digits[2]).size().width, (*digits[2]).size().height);

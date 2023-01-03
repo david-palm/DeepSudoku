@@ -2,7 +2,7 @@
 
 #include <opencv2/core.hpp>
 #include <android/bitmap.h>
-#include "utils/CvUtils.h"
+#include "utils/cvUtils.h"
 #include "HoughAccumulator.h"
 
 class Line
@@ -19,9 +19,10 @@ public:
     cv::Mat m_Input;
 private:
     std::vector<cv::Point> m_SudokuContour;
-    std::vector<cv::Point> m_PaddedSudokuContour;
+    std::vector<cv::Point2f> m_PaddedSudokuContour;
     std::vector<Pixel*> lines;
     cv::Point2i* intersections[100];
+    cv::Mat* cells[81];
     cv::Mat digits[81];
 
 public:

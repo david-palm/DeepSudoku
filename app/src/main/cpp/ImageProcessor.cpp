@@ -13,7 +13,12 @@ void ImageProcessor::previewSudoku(cv::Mat& output)
 
 void ImageProcessor::cutDigits(cv::Mat* (&digits)[81])
 {
-
+    cv::Mat warpedSudoku;
+    warpSudoku(warpedSudoku);
+    identifyLines();
+    calculateIntersections();
+    cutCells();
+    extractDigits(digits);
 }
 
 //Private functions
@@ -135,7 +140,7 @@ void ImageProcessor::identifySudoku(int kernelSize)
     addPadding(approximation, paddedApproximation);
 
     m_SudokuContour = approximation;
-    m_PaddedSudokuContour = paddedApproximation;
+    cvUtils::intToFloatContour(paddedApproximation, m_PaddedSudokuContour);
 }
 
 void ImageProcessor::showSudoku(cv::Mat& output)
@@ -328,10 +333,83 @@ void ImageProcessor::cutCells()
             int width = abs((*sortedIntersections[row + 1][col + 1]).y - (*sortedIntersections[row][col]).y);
             int height = abs((*sortedIntersections[row + 1][col + 1]).x - (*sortedIntersections[row][col]).x);
             cv::Mat* cell = new cv::Mat(height, width, CV_8UC1);
-            cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
+            cvUtils::cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
             cells[row * 9 + col] = cell;
         }
     }
 }
-void extractDigits(cv::Mat* (&digits)[81]);
+
+void ImageProcessor::extractDigits(cv::Mat* (&digits)[81])
+{
+    for(int i = 0; i < 81; i++)
+    {
+        //Resizing cell
+        cv::Mat* cell = new cv::Mat(50, 50, CV_8U);
+        cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_CUBIC);
+        //Find all contours in cell
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::findContours((*cell), contours, hierarchy, cv::RETR_TREE,
+                         cv::CHAIN_APPROX_SIMPLE);
+
+        cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8U);
+        cv::Mat* digitContour = new cv::Mat();
+
+        //Iterating over all contours to find the digit contour
+        for(std::vector<cv::Point>& contour: contours)
+        {
+            //Get bounding rectangle of contour to identify the digit contour
+            cv::Rect_<int> boundingRectangle = cv::boundingRect(contour);
+            cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
+            cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.width, boundingRectangle.y + boundingRectangle.height);
+            if((boundingRectangle.height < 46.0) && (boundingRectangle.width < 45.0))
+            {
+                if( ((float) cv::contourArea(contour) > 70.0f) && (430.0f > (float) cv::contourArea(contour)))
+                {
+                    if((cv::arcLength(contour, true) > 59.0f) && (cv::arcLength(contour, true) < 183.0f))
+                    {
+                        double aspectRatio = (double) boundingRectangle.width / (double) boundingRectangle.height;
+                        if((aspectRatio > 0.2) && (aspectRatio < 9.0))
+                        {
+                            if(boundingRectangle.height > 0 && boundingRectangle.width > 0)
+                            {
+                                digitContour = new cv::Mat(cv::Size(boundingRectangle.width, boundingRectangle.height), CV_8UC1);
+                                cvUtils::cutImage((*cell), (*digitContour), topLeft, bottomRight);
+                            }
+                            else
+                            {
+                                digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
+                                continue;
+                            }
+                            cv::rectangle((*cell), topLeft, bottomRight, cv::Scalar(255, 255, 255), 2);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        cv::Point2i offset((*cell).size() / 2 - (*digitContour).size() / 2);
+
+        //Copying digitContour into digit
+        digit.setTo(cv::Scalar(0));
+        if(((*digitContour).size().width < 50) && ((*digitContour).size().width > 5) && (*digitContour).size().height > 0)
+        {
+            for(int col = 0; col < (*digitContour).size().width; col++)
+            {
+                for(int row = 0; row < (*digitContour).size().height; row++)
+                {
+                    if((*digitContour).at<uint8_t>(row, col) > 0)
+                        digit.at<uint8_t>(row + offset.y, col + offset.x) = (*digitContour).at<uint8_t>(row, col);
+                }
+            }
+        }
+        delete digitContour;
+        //Resizing digit for neural network
+        cv::Mat* resizedDigit = new cv::Mat(28, 28, CV_8UC1);
+        cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
+
+        digits[i] = resizedDigit;
+    }
+}
 

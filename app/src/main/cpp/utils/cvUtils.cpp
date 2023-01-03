@@ -1,6 +1,6 @@
-#include "CvUtils.h"
+#include "cvUtils.h"
 
-void bitmapToMat(JNIEnv* env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha)
+void cvUtils::bitmapToMat(JNIEnv* env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha)
 {
     AndroidBitmapInfo  info;
     void*              pixels = 0;
@@ -37,7 +37,7 @@ void bitmapToMat(JNIEnv* env, jobject bitmap, cv::Mat& dst, jboolean needUnPremu
     }
 }
 
-void matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremultiplyAlpha)
+void cvUtils::matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremultiplyAlpha)
 {
     AndroidBitmapInfo  info;
     void*              pixels = 0;
@@ -89,7 +89,7 @@ void matToBitmap(JNIEnv* env, cv::Mat src, jobject bitmap, jboolean needPremulti
     }
 }
 
-void intToFloatContour(std::vector<cv::Point>& src, std::vector<cv::Point2f>& dst)
+void cvUtils::intToFloatContour(std::vector<cv::Point>& src, std::vector<cv::Point2f>& dst)
 {
     for(int i = 0; i < 4; i++)
     {
@@ -97,3 +97,15 @@ void intToFloatContour(std::vector<cv::Point>& src, std::vector<cv::Point2f>& ds
     }
 
 }
+
+void cvUtils::cutImage(cv::Mat& input, cv::Mat& output, cv::Point2i topLeft, cv::Point2i bottomRight, cv::Point2i offset)
+{
+    // x and y coordinates are switched for the top left and bottom right points
+    for(int col = 0; col < abs(bottomRight.x - topLeft.x); col++)
+    {
+        for(int row = 0; row < abs(bottomRight.y- topLeft.y); row++)
+        {
+            output.at<uint8_t>(offset.x + row, offset.y + col) = input.at<uint8_t>(row + topLeft.y, col + topLeft.x);
+        }
+    }
+};
