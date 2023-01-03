@@ -32,7 +32,6 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         native-lib.cpp
         utils/cvUtils.cpp
-        imageProcessing.cpp
         HoughAccumulator.cpp
         sudokuSolving.cpp
         performance.h

@@ -1,20 +1,18 @@
 #include <jni.h>
 #include <string>
-#include <opencv2/core.hpp>
+
 #include <android/bitmap.h>
 #include <android/log.h>
+#include <unistd.h>
+
+#include <opencv2/core.hpp>
+#include <fdeep/fdeep.hpp>
 
 #include "utils/cvUtils.h"
-#include "imageProcessing.h"
-
-#include <fdeep/fdeep.hpp>
-#include <unistd.h>
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
+#include "ImageProcessor.h"
 #include "kerasModel.h"
 #include "sudokuSolving.h"
 #include "performance.h"
-#include "ImageProcessor.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
