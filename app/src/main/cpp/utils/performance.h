@@ -1,7 +1,7 @@
 #pragma once
 
-#include <chrono>
-#include <android/log.h>
+#include "../../../../../../Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/chrono"
+#include "../../../../../../Android/Sdk/ndk/21.4.7075529/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/android/log.h"
 
 class Timer
 {

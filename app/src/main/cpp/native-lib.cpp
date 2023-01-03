@@ -9,10 +9,11 @@
 #include <fdeep/fdeep.hpp>
 
 #include "utils/cvUtils.h"
-#include "ImageProcessor.h"
+#include "imageProcessing/ImageProcessor.h"
 #include "kerasModel.h"
 #include "SudokuSolver.h"
-#include "performance.h"
+#include "utils/performance.h"
+#include "DigitClassifier.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
@@ -48,36 +49,10 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat* digits[81];
     imageProcessor.cutDigits(digits);
 
-    fdeep::model* kerasModel = (fdeep::model*) kerasModelPointer;
+    DigitClassifier classifier(kerasModelPointer);
 
     int predictions[9][9];
-    {
-        for (int row = 0; row < 9; row++) {
-            for (int col = 0; col < 9; col++) {
-                const auto input = fdeep::tensor_from_bytes((*digits[row + col * 9]).ptr(),
-                                                            static_cast<std::size_t>((*digits[row +
-                                                                                              col *
-                                                                                              9]).rows),
-                                                            static_cast<std::size_t>((*digits[row +
-                                                                                              col *
-                                                                                              9]).cols),
-                                                            static_cast<std::size_t>((*digits[row +
-                                                                                              col *
-                                                                                              9]).channels()),
-                                                            0.0f, 1.0f);
-                const auto result = kerasModel->predict({input});
-                const std::vector<float> vec = result[0].to_vector();
-                int prediction = -1;
-                for (int i = 0; i < 9; i++) {
-                    if (vec[i] > 0.7f) {
-                        prediction = i;
-                        break;
-                    }
-                }
-                predictions[row][col] = prediction + 1;
-            }
-        }
-    }
+    classifier.classifySudoku(digits, predictions);
 
     for(int row = 0; row < 9; row++)
     {

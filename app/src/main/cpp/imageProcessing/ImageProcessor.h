@@ -2,7 +2,7 @@
 
 #include <opencv2/core.hpp>
 #include <android/bitmap.h>
-#include "utils/cvUtils.h"
+#include "../utils/cvUtils.h"
 #include "HoughAccumulator.h"
 
 class Line
