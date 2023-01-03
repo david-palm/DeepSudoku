@@ -28,8 +28,6 @@ private:
 
 public:
     cv::Mat m_Accumulator;
-
-
     cv::Mat m_BinaryAccumulator;
 private:
     cv::Mat m_MarkedAccumulator;
