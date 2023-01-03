@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "CvUtils.h"
 
 void bitmapToMat(JNIEnv* env, jobject bitmap, cv::Mat& dst, jboolean needUnPremultiplyAlpha)
 {
