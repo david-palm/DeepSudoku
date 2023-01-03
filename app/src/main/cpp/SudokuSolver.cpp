@@ -68,7 +68,7 @@ int SudokuSolver::solve(int (&input)[9][9], int (&output)[9][9])
     }
 }
 
-void printSudoku(int (&sudoku)[9][9])
+void SudokuSolver::print(int (&sudoku)[9][9])
 {
     for(int row = 0; row < 9; row++)
     {

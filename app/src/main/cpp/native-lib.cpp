@@ -9,6 +9,7 @@
 #include <fdeep/fdeep.hpp>
 
 #include "utils/cvUtils.h"
+#include "utils/jniUtils.h"
 #include "imageProcessing/ImageProcessor.h"
 #include "kerasModel.h"
 #include "SudokuSolver.h"
@@ -54,26 +55,10 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     int predictions[9][9];
     classifier.classifySudoku(digits, predictions);
 
-    for(int row = 0; row < 9; row++)
-    {
-        for(int col = 0; col < 9; col++)
-        {
-            jint elements[] = { predictions[row][col] };
-            env->SetIntArrayRegion(sudoku, row * 9 + col, 1,
-                                   elements);
-        }
-    }
+    jniUtils::ArrayToJintArray(env, predictions, sudoku);
     SudokuSolver solver = SudokuSolver();
     solver.solve(predictions, predictions);
-    for(int row = 0; row < 9; row++)
-    {
-        for(int col = 0; col < 9; col++)
-        {
-            jint elements[] = { predictions[row][col] };
-            env->SetIntArrayRegion(solvedSudoku, row * 9 + col, 1,
-                                   elements);
-        }
-    }
+    jniUtils::ArrayToJintArray(env, predictions, solvedSudoku);
 
 }
 
