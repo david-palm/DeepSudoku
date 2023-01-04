@@ -20,15 +20,18 @@ void ImageProcessor::previewSudoku(cv::Mat& output)
 void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output)
 {
     cv::Mat outputMatrix;
-    ImageProcessor::identifySudoku();
-    ImageProcessor::showSudoku(outputMatrix);
+    cv::Mat warpedSudoku;
+    identifySudoku();
+    showSudoku(outputMatrix);
+    warpSudoku();
+    identifyLines();
+    showLines(outputMatrix);
     cvUtils::matToBitmap(env, outputMatrix, output, 0);
 }
 
 void ImageProcessor::cutDigits(cv::Mat* (&digits)[81])
 {
-    cv::Mat warpedSudoku;
-    warpSudoku(warpedSudoku);
+    warpSudoku();
     identifyLines();
     calculateIntersections();
     cutCells();
@@ -170,14 +173,14 @@ void ImageProcessor::showSudoku(cv::Mat& output)
     }
 }
 
-void ImageProcessor::warpSudoku(cv::Mat& output)
+void ImageProcessor::warpSudoku()
 {
     std::vector<cv::Point2f> corners = { cv::Point2f(m_Input.cols, 0),
                                          cv::Point2f(0, 0),
                                          cv::Point2f(0, m_Input.rows),
                                          cv::Point2f(m_Input.cols, m_Input.rows) };
     cv::Mat transform = cv::getPerspectiveTransform(m_PaddedSudokuContour, corners);
-    cv::warpPerspective(m_Input, output, transform, m_Input.size());
+    cv::warpPerspective(m_Input, m_WarpedSudoku, transform, m_Input.size());
 }
 
 void ImageProcessor::identifyLines() {
@@ -186,7 +189,7 @@ void ImageProcessor::identifyLines() {
     auto createGradientImages = [&](cv::Mat &gradientX, cv::Mat &gradientY, int kernelSize = 25) {
         /* Converts image to grayscale and blurs it */
         auto prepareImage = [&](cv::Mat &output) {
-            cv::cvtColor(m_Input, output, cv::COLOR_BGR2GRAY);
+            cv::cvtColor(m_WarpedSudoku, output, cv::COLOR_BGR2GRAY);
             cv::GaussianBlur(output, output, cv::Size(kernelSize, kernelSize), 3);
         };
 
@@ -222,7 +225,7 @@ void ImageProcessor::identifyLines() {
 void ImageProcessor::showLines(cv::Mat& output)
 {
     //Creating line image
-    output = m_Input.clone();
+    output = m_WarpedSudoku.clone();
     for(Pixel* line : lines)
     {
         double a = cos((*line).theta);
@@ -231,8 +234,8 @@ void ImageProcessor::showLines(cv::Mat& output)
         double x0 = a * (*line).rho;
         double y0 = b * (*line).rho;
 
-        cv::Point2i pt1((int) (y0 + m_Input.size().height * a), (int) (x0 + m_Input.size().width * (-b)));
-        cv::Point2i pt2((int) (y0 - m_Input.size().height * a), (int) (x0 - m_Input.size().width * (-b)));
+        cv::Point2i pt1((int) (y0 + m_WarpedSudoku.size().height * a), (int) (x0 + m_WarpedSudoku.size().width * (-b)));
+        cv::Point2i pt2((int) (y0 - m_WarpedSudoku.size().height * a), (int) (x0 - m_WarpedSudoku.size().width * (-b)));
 
         cv::line(output, pt1, pt2, cv::Scalar(0, 0, 205), 4);
     }
@@ -300,7 +303,7 @@ void ImageProcessor::cutCells()
 {
     auto binarizeImage = [&] (cv::Mat& output, int gaussKernelSize = 41)
     {
-        cv::cvtColor(m_Input, output, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(m_WarpedSudoku, output, cv::COLOR_BGR2GRAY);
         cv::GaussianBlur(output, output, cv::Size(gaussKernelSize, gaussKernelSize), 3);
         cv::adaptiveThreshold(output, output, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C,
                               cv::THRESH_BINARY_INV, 199, 25);
@@ -350,6 +353,22 @@ void ImageProcessor::cutCells()
             cvUtils::cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
             cells[row * 9 + col] = cell;
         }
+    }
+}
+
+void ImageProcessor::showCells(cv::Mat& output, float scale)
+{
+    output = cv::Mat(m_WarpedSudoku);
+    for(int i = 0; i < 81; i++)
+    {
+        for (int col = 0; col < (*cells[i]).size().width * scale; col++)
+        {
+            for (int row = 0; row < (*cells[i]).size().height * scale; row++)
+            {
+                output.at<uint32_t>(row + (i % 9) * ((*cells[i]).size().height + 1) * scale, col + (i / 9) * ((*cells[i]).size().width + 1) * scale) = (*cells[i]).at<uint8_t>(row / scale, col / scale);
+            }
+        }
+        output.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
     }
 }
 
@@ -426,18 +445,3 @@ void ImageProcessor::extractDigits(cv::Mat* (&digits)[81])
         digits[i] = resizedDigit;
     }
 }
-
-//Displaying cut digits
-/*
-int scaleFactor = 5;
-for(int i = 0; i < 81; i++) {
-    for (int col = 0; col < (*digits[i]).size().width * scaleFactor; col++) {
-        for (int row = 0; row < (*digits[i]).size().height * scaleFactor; row++) {
-            outputMatrix.at<uint32_t>(row + (i % 9) * ((*digits[i]).size().height + 1) * scaleFactor, col + (i / 9) * ((*digits[i]).size().width + 1) * scaleFactor) = (*digits[i]).at<uint8_t>(row / scaleFactor, col / scaleFactor);
-        }
-
-    }
-    outputMatrix.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
-}
-*/
-

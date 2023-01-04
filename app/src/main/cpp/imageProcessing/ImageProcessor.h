@@ -22,6 +22,7 @@ public:
 private:
     std::vector<cv::Point> m_SudokuContour;
     std::vector<cv::Point2f> m_PaddedSudokuContour;
+    cv::Mat m_WarpedSudoku;
     std::vector<Pixel*> lines;
     cv::Point2i* intersections[100];
     cv::Mat* cells[81];
@@ -37,11 +38,12 @@ public:
 private:
     void identifySudoku(int kernelSize = 41);
     void showSudoku(cv::Mat& output);
-    void warpSudoku(cv::Mat& output);
+    void warpSudoku();
     void identifyLines();
     void showLines(cv::Mat& output);
     void calculateIntersections();
     void showIntersections(cv::Mat& output);
     void cutCells();
+    void showCells(cv::Mat& output, float scale = 5);
     void extractDigits(cv::Mat* (&digits)[81]);
 };
