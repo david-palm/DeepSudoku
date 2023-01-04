@@ -49,7 +49,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
 
 extern "C"
 JNIEXPORT jlong JNICALL
-        Java_com_example_deepsudoku_MainActivityKt_initKerasModel(JNIEnv *env, jclass clazz)
+        Java_com_example_deepsudoku_MainActivityKt_initAiModel(JNIEnv *env, jclass clazz)
 {
     const fdeep::model model = fdeep::read_model_from_string(modelJSON);
     return (long) new fdeep::model(model);

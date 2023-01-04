@@ -9,9 +9,9 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import org.opencv.android.OpenCVLoader
 
 typealias LumaListener = (luma: Double) -> Unit
-var kerasModelPointer : Long = 0
+var aiModelPointer : Long = 0
 
-external fun initKerasModel(): Long
+external fun initAiModel(): Long
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private lateinit var navController: NavController
@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             Log.d("OpenCV", "OpenCV succesfully loaded!")
         }
 
-        kerasModelPointer = initKerasModel()
+        aiModelPointer = initAiModel()
 
         // Set up the action bar for use with the NavController
         setupActionBarWithNavController(navController)
