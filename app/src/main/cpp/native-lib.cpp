@@ -21,31 +21,15 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
 {
-    //Converting Bitmap to matrix
-    cv::Mat inputMatrix;
-    cvUtils::bitmapToMat(env, inputBitmap, inputMatrix, 0);
-
-    ImageProcessor imageProcessor(inputMatrix);
-
-    //Identifying sudoku
-    cv::Mat outputMatrix;
-
-    imageProcessor.previewSudoku(outputMatrix);
-
-    //Converting matrix back to Bitmap and contour to float array
-    cvUtils::matToBitmap(env, outputMatrix, outputBitmap, false);
+    ImageProcessor imageProcessor(env, inputBitmap);
+    imageProcessor.previewSudoku(env, outputBitmap);
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong kerasModelPointer, jobject inputBitmap, jintArray sudoku, jintArray solvedSudoku)
 {
-    //Converting Bitmap to matrix
-    cv::Mat inputMatrix;
-    cvUtils::bitmapToMat(env, inputBitmap, inputMatrix, 0);
-
-    cv::Mat output;
-    ImageProcessor imageProcessor(inputMatrix);
-    imageProcessor.previewSudoku(output);
+    ImageProcessor imageProcessor(env, inputBitmap);
+    imageProcessor.previewSudoku(env, inputBitmap);
 
     cv::Mat* digits[81];
     imageProcessor.cutDigits(digits);
@@ -59,7 +43,6 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     SudokuSolver solver = SudokuSolver();
     solver.solve(predictions, predictions);
     jniUtils::ArrayToJintArray(env, predictions, solvedSudoku);
-
 }
 
 

@@ -5,10 +5,24 @@ m_Input(input)
 {
 }
 
+ImageProcessor::ImageProcessor(JNIEnv* env, jobject& input)
+{
+    //Converting Bitmap to matrix
+    cvUtils::bitmapToMat(env, input, m_Input, 0);
+}
+
 void ImageProcessor::previewSudoku(cv::Mat& output)
 {
     ImageProcessor::identifySudoku();
     ImageProcessor::showSudoku(output);
+}
+
+void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output)
+{
+    cv::Mat outputMatrix;
+    ImageProcessor::identifySudoku();
+    ImageProcessor::showSudoku(outputMatrix);
+    cvUtils::matToBitmap(env, outputMatrix, output, 0);
 }
 
 void ImageProcessor::cutDigits(cv::Mat* (&digits)[81])

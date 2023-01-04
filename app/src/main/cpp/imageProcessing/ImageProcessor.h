@@ -2,6 +2,8 @@
 
 #include <opencv2/core.hpp>
 #include <android/bitmap.h>
+#include <jni.h>
+
 #include "../utils/cvUtils.h"
 #include "HoughAccumulator.h"
 
@@ -27,9 +29,10 @@ private:
 
 public:
     ImageProcessor(cv::Mat& input);
-    ImageProcessor(jobject& input);
+    ImageProcessor(JNIEnv* env, jobject& input);
 
     void previewSudoku(cv::Mat& output);
+    void previewSudoku(JNIEnv* env, jobject& output);
     void cutDigits(cv::Mat* (&digits)[81]);
 private:
     void identifySudoku(int kernelSize = 41);
