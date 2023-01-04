@@ -27,13 +27,12 @@ Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong aiModelPointer, jobject inputBitmap, jintArray sudoku, jintArray solvedSudoku)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong aiModelPointer, jlong imageProcessorPointer, jintArray sudoku, jintArray solvedSudoku)
 {
-    ImageProcessor imageProcessor(env, inputBitmap);
-    imageProcessor.previewSudoku(env, inputBitmap);
+    ImageProcessor* imageProcessor =  (ImageProcessor*) imageProcessorPointer;
 
     cv::Mat* digits[81];
-    imageProcessor.cutDigits(digits);
+    imageProcessor->cutDigits(digits);
 
     DigitClassifier classifier(aiModelPointer);
 

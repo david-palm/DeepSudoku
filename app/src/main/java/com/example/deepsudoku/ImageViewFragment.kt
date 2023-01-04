@@ -21,6 +21,7 @@ class ImageViewFragment : Fragment() {
     private var imageUri: Uri? = null
     lateinit var assetManager : AssetManager
     lateinit var image: Bitmap
+    var imageProcessorPointer: Long = 0
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -47,7 +48,7 @@ class ImageViewFragment : Fragment() {
         image = image.copy(Bitmap.Config.ARGB_8888, true)
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        identifySudoku(image, output)
+        imageProcessorPointer = identifySudoku(image, output)
         viewBinding.imageView.setImageBitmap(output)
     }
 
@@ -57,7 +58,7 @@ class ImageViewFragment : Fragment() {
         var solvedSudoku: IntArray = IntArray(81);
 
         //Process image by calling native code
-        val time = kotlin.time.measureTimedValue { solveSudoku(aiModelPointer, image, sudoku, solvedSudoku) }
+        val time = kotlin.time.measureTimedValue { solveSudoku(aiModelPointer, imageProcessorPointer, sudoku, solvedSudoku) }
 
 
         Log.d("Timer", "Solving sudoku took: " + time.toString())
@@ -73,5 +74,5 @@ class ImageViewFragment : Fragment() {
     }
 
     external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap) : Long
-    external fun solveSudoku(aiModelPointer : Long, inputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
+    external fun solveSudoku(aiModelPointer : Long, imageProcessorPointer: Long, sudoku: IntArray, solvedSudoku: IntArray)
 }
