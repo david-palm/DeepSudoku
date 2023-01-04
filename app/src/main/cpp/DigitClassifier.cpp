@@ -1,8 +1,8 @@
 #include "DigitClassifier.h"
 
-DigitClassifier::DigitClassifier(const long fdeepModelPointer)
+DigitClassifier::DigitClassifier(const long aiModelPointer)
 {
-    m_Model = (fdeep::model*) fdeepModelPointer;
+    m_Model = (fdeep::model*) aiModelPointer;
 }
 
 DigitClassifier::~DigitClassifier()
