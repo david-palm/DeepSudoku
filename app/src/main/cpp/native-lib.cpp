@@ -18,15 +18,16 @@
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jlong JNICALL
 Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
 {
-    ImageProcessor imageProcessor(env, inputBitmap);
-    imageProcessor.previewSudoku(env, outputBitmap);
+    ImageProcessor* imageProcessor =  new ImageProcessor(env, inputBitmap);
+    imageProcessor->previewSudoku(env, outputBitmap);
+    return (long) imageProcessor;
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong kerasModelPointer, jobject inputBitmap, jintArray sudoku, jintArray solvedSudoku)
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong aiModelPointer, jobject inputBitmap, jintArray sudoku, jintArray solvedSudoku)
 {
     ImageProcessor imageProcessor(env, inputBitmap);
     imageProcessor.previewSudoku(env, inputBitmap);
@@ -34,7 +35,7 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
     cv::Mat* digits[81];
     imageProcessor.cutDigits(digits);
 
-    DigitClassifier classifier(kerasModelPointer);
+    DigitClassifier classifier(aiModelPointer);
 
     int predictions[9][9];
     classifier.classifySudoku(digits, predictions);

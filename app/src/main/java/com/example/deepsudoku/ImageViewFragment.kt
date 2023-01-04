@@ -57,7 +57,7 @@ class ImageViewFragment : Fragment() {
         var solvedSudoku: IntArray = IntArray(81);
 
         //Process image by calling native code
-        val time = kotlin.time.measureTimedValue { solveSudoku(kerasModelPointer, image, sudoku, solvedSudoku) }
+        val time = kotlin.time.measureTimedValue { solveSudoku(aiModelPointer, image, sudoku, solvedSudoku) }
 
 
         Log.d("Timer", "Solving sudoku took: " + time.toString())
@@ -72,6 +72,6 @@ class ImageViewFragment : Fragment() {
         Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_imageCaptureFragment, Bundle())
     }
 
-    external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap)
-    external fun solveSudoku(kerasModelPointer : Long, inputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
+    external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap) : Long
+    external fun solveSudoku(aiModelPointer : Long, inputImage: Bitmap, sudoku: IntArray, solvedSudoku: IntArray)
 }

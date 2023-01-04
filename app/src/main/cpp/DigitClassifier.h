@@ -4,7 +4,7 @@
 class DigitClassifier
 {
 public:
-    DigitClassifier(const long fdeepModelPointer);
+    DigitClassifier(const long aiModelPointer);
     ~DigitClassifier();
 
     void classifySudoku(cv::Mat* (&digits)[81], int (&predictions)[9][9]);
