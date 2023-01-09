@@ -13,6 +13,7 @@ import android.view.View.OnTouchListener
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.example.deepsudoku.databinding.FragmentSolutionViewBinding
 import java.lang.reflect.Type
@@ -31,6 +32,7 @@ class SolutionViewFragment : Fragment() {
         viewBinding.sudokuBoard.solvedDigits = arguments?.getIntegerArrayList("SolvedSudoku")!!.toIntArray()
         viewBinding.revealAllDigits.setOnClickListener { revealHideDigits() }
         viewBinding.sudokuBoard.button = viewBinding.revealAllDigits
+        (activity as AppCompatActivity?)!!.supportActionBar!!.hide()
         return viewBinding.root
     }
 
