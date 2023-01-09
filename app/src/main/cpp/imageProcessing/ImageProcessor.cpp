@@ -13,8 +13,13 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject& input)
 
 void ImageProcessor::previewSudoku(cv::Mat& output)
 {
-    ImageProcessor::identifySudoku();
-    ImageProcessor::showSudoku(output);
+    cv::Mat outputMatrix;
+    cv::Mat warpedSudoku;
+    identifySudoku();
+    showSudoku(output);
+    warpSudoku();
+    identifyLines();
+    showLines(output);
 }
 
 void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output)
@@ -31,8 +36,6 @@ void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output)
 
 void ImageProcessor::cutDigits(cv::Mat* (&digits)[81])
 {
-    warpSudoku();
-    identifyLines();
     calculateIntersections();
     cutCells();
     extractDigits(digits);
@@ -237,7 +240,7 @@ void ImageProcessor::showLines(cv::Mat& output)
         cv::Point2i pt1((int) (y0 + m_WarpedSudoku.size().height * a), (int) (x0 + m_WarpedSudoku.size().width * (-b)));
         cv::Point2i pt2((int) (y0 - m_WarpedSudoku.size().height * a), (int) (x0 - m_WarpedSudoku.size().width * (-b)));
 
-        cv::line(output, pt1, pt2, cv::Scalar(0, 0, 205), 4);
+        cv::line(output, pt1, pt2, cv::Scalar(0, 144, 235), 10);
     }
 }
 
@@ -296,6 +299,14 @@ void ImageProcessor::calculateIntersections()
             }
 
         }
+    }
+}
+
+void ImageProcessor::showIntersections(cv::Mat &input)
+{
+    for(cv::Point2i* intersection: intersections)
+    {
+        cv::circle(input, *intersection, 25, cv::Scalar(219, 58, 0), -1);
     }
 }
 
