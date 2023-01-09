@@ -1,115 +1,60 @@
 #include <jni.h>
 #include <string>
-#include <opencv2/core.hpp>
+
 #include <android/bitmap.h>
+#include <android/log.h>
+#include <unistd.h>
 
-#include "utils.h"
+#include <opencv2/core.hpp>
+#include <fdeep/fdeep.hpp>
 
-
-using namespace cv;
-
-void bitmapToMat(JNIEnv *env, jobject bitmap, Mat& dst, jboolean needUnPremultiplyAlpha)
+#include "utils/cvUtils.h"
+#include "utils/jniUtils.h"
+#include "imageProcessing/ImageProcessor.h"
+#include "kerasModel.h"
+#include "SudokuSolver.h"
+#include "utils/performance.h"
+#include "DigitClassifier.h"
+#include "Sudoku.h"
+/* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
+ * the coordinates of the sudoku contour. */
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
 {
-    AndroidBitmapInfo  info;
-    void*              pixels = 0;
-
-    try {
-        CV_Assert( AndroidBitmap_getInfo(env, bitmap, &info) >= 0 );
-        CV_Assert( info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 ||
-                   info.format == ANDROID_BITMAP_FORMAT_RGB_565 );
-        CV_Assert( AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0 );
-        CV_Assert( pixels );
-        dst.create(info.height, info.width, CV_8UC4);
-        if( info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 )
-        {
-            Mat tmp(info.height, info.width, CV_8UC4, pixels);
-            if(needUnPremultiplyAlpha) cvtColor(tmp, dst, COLOR_mRGBA2RGBA);
-            else tmp.copyTo(dst);
-        } else {
-            // info.format == ANDROID_BITMAP_FORMAT_RGB_565
-            Mat tmp(info.height, info.width, CV_8UC2, pixels);
-            cvtColor(tmp, dst, COLOR_BGR5652RGBA);
-        }
-        AndroidBitmap_unlockPixels(env, bitmap);
-        return;
-    } catch(const cv::Exception& e) {
-        AndroidBitmap_unlockPixels(env, bitmap);
-        jclass je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je, e.what());
-        return;
-    } catch (...) {
-        AndroidBitmap_unlockPixels(env, bitmap);
-        jclass je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je, "Unknown exception in JNI code {nBitmapToMat}");
-        return;
-    }
+    ImageProcessor* imageProcessor =  new ImageProcessor(env, inputBitmap);
+    imageProcessor->previewSudoku(env, outputBitmap);
+    return (long) imageProcessor;
 }
-
-void matToBitmap(JNIEnv* env, Mat src, jobject bitmap, jboolean needPremultiplyAlpha)
-{
-    AndroidBitmapInfo  info;
-    void*              pixels = 0;
-
-    try {
-        CV_Assert( AndroidBitmap_getInfo(env, bitmap, &info) >= 0 );
-        CV_Assert( info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 ||
-                   info.format == ANDROID_BITMAP_FORMAT_RGB_565 );
-        CV_Assert( src.dims == 2 && info.height == (uint32_t)src.rows && info.width == (uint32_t)src.cols );
-        CV_Assert( src.type() == CV_8UC1 || src.type() == CV_8UC3 || src.type() == CV_8UC4 );
-        CV_Assert( AndroidBitmap_lockPixels(env, bitmap, &pixels) >= 0 );
-        CV_Assert( pixels );
-        if( info.format == ANDROID_BITMAP_FORMAT_RGBA_8888 )
-        {
-            Mat tmp(info.height, info.width, CV_8UC4, pixels);
-            if(src.type() == CV_8UC1)
-            {
-                cvtColor(src, tmp, COLOR_GRAY2RGBA);
-            } else if(src.type() == CV_8UC3){
-                cvtColor(src, tmp, COLOR_RGB2RGBA);
-            } else if(src.type() == CV_8UC4){
-                if(needPremultiplyAlpha) cvtColor(src, tmp, COLOR_RGBA2mRGBA);
-                else src.copyTo(tmp);
-            }
-        } else {
-            // info.format == ANDROID_BITMAP_FORMAT_RGB_565
-            Mat tmp(info.height, info.width, CV_8UC2, pixels);
-            if(src.type() == CV_8UC1)
-            {
-                cvtColor(src, tmp, COLOR_GRAY2BGR565);
-            } else if(src.type() == CV_8UC3){
-                cvtColor(src, tmp, COLOR_RGB2BGR565);
-            } else if(src.type() == CV_8UC4){
-                cvtColor(src, tmp, COLOR_RGBA2BGR565);
-            }
-        }
-        AndroidBitmap_unlockPixels(env, bitmap);
-        return;
-    } catch(const cv::Exception& e) {
-        AndroidBitmap_unlockPixels(env, bitmap);
-        jclass je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je, e.what());
-        return;
-    } catch (...) {
-        AndroidBitmap_unlockPixels(env, bitmap);
-        jclass je = env->FindClass("java/lang/Exception");
-        env->ThrowNew(je, "Unknown exception in JNI code {nMatToBitmap}");
-        return;
-    }
-}
-
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_deepsudoku_MainActivity_stringFromJNI(
-        JNIEnv* env,
-        jobject /* this */) {
-    std::string hello = "Hello from C++";
-    return env->NewStringUTF(hello.c_str());
-}
-//
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_blur(JNIEnv *env, jobject thiz, jobject image, jobject output) {
-    Mat src;
-    bitmapToMat(env, image, src, 0);
-    myBlur(src, 50);
-    matToBitmap(env, src, output, false);
+Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject thiz, jlong aiModelPointer, jlong imageProcessorPointer, jintArray sudoku, jintArray solvedSudoku)
+{
+    ImageProcessor* imageProcessor =  (ImageProcessor*) imageProcessorPointer;
+
+    cv::Mat* digits[81];
+    imageProcessor->cutDigits(digits);
+
+    DigitClassifier classifier(aiModelPointer);
+
+    Sudoku sudokuObject = Sudoku();
+    classifier.classifySudoku(digits, sudokuObject);
+
+
+
+    jniUtils::ArrayToJintArray(env, sudokuObject.m_ScannedDigits, sudoku);
+    SudokuSolver solver = SudokuSolver();
+    //solver.print(sudokuObject.m_ScannedDigits);
+    solver.solve(sudokuObject.m_ScannedDigits, sudokuObject.m_ScannedDigits);
+    jniUtils::ArrayToJintArray(env, sudokuObject.m_ScannedDigits, solvedSudoku);
+}
+
+
+
+extern "C"
+JNIEXPORT jlong JNICALL
+        Java_com_example_deepsudoku_MainActivityKt_initAiModel(JNIEnv *env, jclass clazz)
+{
+    const fdeep::model model = fdeep::read_model_from_string(modelJSON);
+    return (long) new fdeep::model(model);
 }
