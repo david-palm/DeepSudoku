@@ -3,8 +3,8 @@
     <string name="take_photo">Take Photo</string>
     <string name="capture_button">Capture Button</string>
     <string name="camera_preview">Camera Preview</string>
+    <string name="reveal_digits">REVEAL ALL DIGITS</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <!-- Sudoku cell values -->
-
 </resources>

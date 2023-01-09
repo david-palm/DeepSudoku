@@ -1,13 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/sudoku_background"
     tools:context=".ImageViewFragment">
+
+    <com.example.deepsudoku.SudokuBoard
+        android:id="@+id/sudokuBoard"
+        android:layout_width="370dp"
+        android:layout_height="376dp"
+        android:layout_marginTop="108dp"
+        android:visibility="visible"
+        custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="370dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="36dp"
+        android:background="@drawable/button_style"
+        android:fontFamily="@font/open_sans_bold"
+        android:text="@string/reveal_digits"
+        android:textColor="@color/sudoku_background"
+        android:textSize="30sp"
+        custom:layout_constraintEnd_toEndOf="@+id/sudokuBoard"
+        custom:layout_constraintHorizontal_bias="0.0"
+        custom:layout_constraintStart_toStartOf="@+id/sudokuBoard"
+        custom:layout_constraintTop_toBottomOf="@+id/sudokuBoard" />
 
     <!-- TODO: Update blank fragment layout -->
 
-
+<!--
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -1370,4 +1398,5 @@
         </TableRow>
 
     </TableLayout>
-</FrameLayout>
+    -->
+</androidx.constraintlayout.widget.ConstraintLayout>

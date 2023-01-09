@@ -1,13 +1,15 @@
 #pragma once
 
+#include <array>
+
 class SudokuSolver
 {
 public:
     SudokuSolver();
 
-    int solve(int (&input)[9][9], int (&output)[9][9]);
-    void print(int (&sudoku)[9][9]);
+    int solve(std::array<std::array<int, 9>, 9> &input, std::array<std::array<int, 9>, 9> &output);
+    void print(std::array<std::array<int, 9>, 9> &sudoku);
 private:
-    bool isSafe(int (&sudoku)[9][9], int row, int col, int value);
-    bool solveCell(int (&sudoku)[9][9], int row, int col);
+    bool isSafe(std::array<std::array<int, 9>, 9> &sudoku, int row, int col, int value);
+    bool solveCell(std::array<std::array<int, 9>, 9> &sudoku, int row, int col);
 };

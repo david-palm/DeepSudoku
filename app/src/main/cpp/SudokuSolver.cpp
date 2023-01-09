@@ -5,7 +5,7 @@
 #include "SudokuSolver.h"
 
 SudokuSolver::SudokuSolver() {}
-bool SudokuSolver::isSafe(int (&sudoku)[9][9], int row, int col, int value)
+bool SudokuSolver::isSafe(std::array<std::array<int, 9>, 9> &sudoku, int row, int col, int value)
 {
     //Checking if number is already in row
     for(int i = 0; i < 9; i++)
@@ -29,7 +29,7 @@ bool SudokuSolver::isSafe(int (&sudoku)[9][9], int row, int col, int value)
     return true;
 }
 
-bool SudokuSolver::solveCell(int (&sudoku)[9][9], int row, int col)
+bool SudokuSolver::solveCell(std::array<std::array<int, 9>, 9> &sudoku, int row, int col)
 {
     if(row == 8 && col == 9)
         return true;
@@ -56,7 +56,7 @@ bool SudokuSolver::solveCell(int (&sudoku)[9][9], int row, int col)
     return false;
 }
 
-int SudokuSolver::solve(int (&input)[9][9], int (&output)[9][9])
+int SudokuSolver::solve(std::array<std::array<int, 9>, 9> &input, std::array<std::array<int, 9>, 9> &output)
 {
     if(!solveCell(input, 0, 0))
     {
@@ -68,7 +68,7 @@ int SudokuSolver::solve(int (&input)[9][9], int (&output)[9][9])
     }
 }
 
-void SudokuSolver::print(int (&sudoku)[9][9])
+void SudokuSolver::print(std::array<std::array<int, 9>, 9> &sudoku)
 {
     for(int row = 0; row < 9; row++)
     {

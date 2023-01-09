@@ -3,4 +3,7 @@
         <attr name="fullscreenBackgroundColor" format="color" />
         <attr name="fullscreenTextColor" format="color" />
     </declare-styleable>
+    <declare-styleable name="SudokuBoard">
+
+    </declare-styleable>
 </resources>

@@ -1,4 +1,8 @@
 #include "DigitClassifier.h"
+#include <future>
+#include <android/log.h>
+
+#include "SudokuSolver.h"
 
 DigitClassifier::DigitClassifier(const long aiModelPointer)
 {
@@ -9,15 +13,27 @@ DigitClassifier::~DigitClassifier()
 {
 }
 
-void DigitClassifier::classifySudoku(cv::Mat* (&digits)[81], int (&predictions)[9][9])
+void DigitClassifier::addDigitToPredictions(cv::Mat* digit, int* cell)
 {
+    *cell = this->classifyDigit(digit);
+
+    __android_log_print(ANDROID_LOG_DEBUG, "DigitClassifier", "Classified digit as %d", *cell);
+}
+
+void DigitClassifier::classifySudoku(cv::Mat* (&digits)[81], Sudoku &sudoku)
+{
+
     for(int row = 0; row < 9; row++)
     {
         for(int col = 0; col < 9; col++)
         {
-            predictions[row][col] = classifyDigit(digits[row + col * 9]);
+            //m_Futures.push_back(std::async(std::launch::async, &DigitClassifier::addDigitToPredictions, this, digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]));
+            addDigitToPredictions(digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]);
+            //__android_log_print(ANDROID_LOG_DEBUG, "DigitClassifier", "2Classified digit as %d", predictions[row][col]);
         }
     }
+    SudokuSolver s;
+    s.print(sudoku.m_ScannedDigits);
 }
 int DigitClassifier::classifyDigit(cv::Mat* digit)
 {

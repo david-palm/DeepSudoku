@@ -15,6 +15,7 @@
 #include "SudokuSolver.h"
 #include "utils/performance.h"
 #include "DigitClassifier.h"
+#include "Sudoku.h"
 /* Identify sudoku returns an image with the sudoku contour highlighted in green and an array with
  * the coordinates of the sudoku contour. */
 extern "C"
@@ -36,13 +37,16 @@ Java_com_example_deepsudoku_ImageViewFragment_solveSudoku(JNIEnv *env, jobject t
 
     DigitClassifier classifier(aiModelPointer);
 
-    int predictions[9][9];
-    classifier.classifySudoku(digits, predictions);
+    Sudoku sudokuObject = Sudoku();
+    classifier.classifySudoku(digits, sudokuObject);
 
-    jniUtils::ArrayToJintArray(env, predictions, sudoku);
+
+
+    jniUtils::ArrayToJintArray(env, sudokuObject.m_ScannedDigits, sudoku);
     SudokuSolver solver = SudokuSolver();
-    solver.solve(predictions, predictions);
-    jniUtils::ArrayToJintArray(env, predictions, solvedSudoku);
+    //solver.print(sudokuObject.m_ScannedDigits);
+    solver.solve(sudokuObject.m_ScannedDigits, sudokuObject.m_ScannedDigits);
+    jniUtils::ArrayToJintArray(env, sudokuObject.m_ScannedDigits, solvedSudoku);
 }
 
 
