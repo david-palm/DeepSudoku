@@ -162,6 +162,7 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
         }
         invalidate()
     }
+
     fun revealAllDigits(){
         displayDigits = solvedDigits.clone()
         for(index in 0 .. 80) {
@@ -173,9 +174,7 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
     }
 
     fun hideAllDigits(){
-        Log.d("SudokuBoard", "Hiding all digits!")
         displayDigits = startDigits.clone()
-        Log.d("SudokuBoard", "Hiding all digits!2")
         activatedCells = mutableListOf<Vec2>()
         invalidate()
     }
