@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Button
 import kotlin.math.ceil
 import kotlin.math.min
 
@@ -22,6 +23,7 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
     private var cellSize: Int = 0
     private var selectedCell: Vec2 = Vec2(-1, -1)
     private var activatedCells: MutableList<Vec2> = mutableListOf<Vec2>()
+    var button: Button = Button(context)
 
     var startDigits: IntArray = IntArray(81)
     var solvedDigits: IntArray = IntArray(81)
@@ -34,7 +36,7 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
         //Setting square view for sudoku board
         setMeasuredDimension(boardLength, boardLength)
 
-        displayDigits = startDigits
+        displayDigits = startDigits.clone()
 
         outlineColorPaint.color = resources.getColor(R.color.sudoku_outline)
         lineColorPaint.color = resources.getColor(R.color.sudoku_line)
@@ -65,13 +67,16 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
             }
         }
 
-        if(event!!.action == MotionEvent.ACTION_UP){
+        if(event!!.action == MotionEvent.ACTION_UP) {
             if(selectedCell.y != -1 && selectedCell.x != -1) {
                 activatedCells.add(Vec2(selectedCell.x, selectedCell.y))
                 var index = (selectedCell.x - 1) + (selectedCell.y - 1) * 9
                 displayDigits[index] = solvedDigits[index]
                 selectedCell.x = -1
                 selectedCell.y = -1
+                if(displayDigits.contentEquals(solvedDigits)) {
+                    button.setText(R.string.hide_digits)
+                }
                 invalidate()
                 return true
             }
@@ -146,6 +151,33 @@ class SudokuBoard(context: Context, attrs: AttributeSet) : View(context, attrs) 
             outlineColorPaint.strokeWidth = 8.0f
             canvas!!.drawLine(0.0f, (cellSize * row * 3).toFloat(), width.toFloat(), (cellSize * row * 3).toFloat(), outlineColorPaint)
         }
+    }
+
+    fun revealHideDigits() {
+        if (!solvedDigits.contentEquals(displayDigits)) {
+            revealAllDigits()
+        }
+        else {
+            hideAllDigits()
+        }
+        invalidate()
+    }
+    fun revealAllDigits(){
+        displayDigits = solvedDigits.clone()
+        for(index in 0 .. 80) {
+            if (startDigits[index] == 0) {
+                activatedCells.add(Vec2((index % 9) + 1, index / 9 + 1))
+            }
+        }
+        invalidate()
+    }
+
+    fun hideAllDigits(){
+        Log.d("SudokuBoard", "Hiding all digits!")
+        displayDigits = startDigits.clone()
+        Log.d("SudokuBoard", "Hiding all digits!2")
+        activatedCells = mutableListOf<Vec2>()
+        invalidate()
     }
 
     class Vec2(x: Int, y: Int){
