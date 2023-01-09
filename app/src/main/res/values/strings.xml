@@ -3,9 +3,10 @@
     <string name="take_photo">Take Photo</string>
     <string name="capture_button">Capture Button</string>
     <string name="camera_preview">Camera Preview</string>
+    <string name="solve_sudoku">SOLVE SUDOKU</string>
+    <string name="retake_image">RETAKE IMAGE</string>
     <string name="reveal_digits">REVEAL ALL DIGITS</string>
     <string name="hide_digits">HIDE DIGITS</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <!-- Sudoku cell values -->
+    <string name="sudoku_solved">SUDOKU SOLVED!</string>
+    <string name="verify_image">VERIFY IMAGE!</string>
 </resources>

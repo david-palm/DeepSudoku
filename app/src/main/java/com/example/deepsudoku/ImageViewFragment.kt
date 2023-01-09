@@ -34,8 +34,8 @@ class ImageViewFragment : Fragment() {
         viewBinding.imageView.setImageURI(imageUri)
 
         //Set button listeners
-        viewBinding.imageAcceptButton.setOnClickListener { solveSudoku() }
-        viewBinding.imageDeleteButton.setOnClickListener { deleteImage() }
+        viewBinding.solveSudoku.setOnClickListener { solveSudoku() }
+        viewBinding.retakeImage.setOnClickListener { deleteImage() }
         (activity as AppCompatActivity?)!!.supportActionBar!!.hide()
         identifySudoku();
 

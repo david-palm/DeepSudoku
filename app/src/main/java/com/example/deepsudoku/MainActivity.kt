@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
         aiModelPointer = initAiModel()
 
+
         // Set up the action bar for use with the NavController
         setupActionBarWithNavController(navController)
     }

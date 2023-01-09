@@ -8,13 +8,28 @@
     android:background="@color/sudoku_background"
     tools:context=".ImageViewFragment">
 
+
+    <TextView
+        android:layout_width="352dp"
+        android:layout_height="43dp"
+        android:fontFamily="@font/open_sans_bold"
+        android:text="@string/sudoku_solved"
+        android:textSize="40dp"
+        custom:layout_constraintBottom_toTopOf="@+id/sudokuBoard"
+        custom:layout_constraintEnd_toEndOf="parent"
+        android:textColor="@color/sudoku_outline"
+
+        custom:layout_constraintStart_toStartOf="parent"
+        custom:layout_constraintTop_toTopOf="parent" />
+
     <com.example.deepsudoku.SudokuBoard
         android:id="@+id/sudokuBoard"
         android:layout_width="370dp"
         android:layout_height="376dp"
-        android:layout_marginTop="108dp"
+        android:layout_marginTop="184dp"
         android:visibility="visible"
         custom:layout_constraintEnd_toEndOf="parent"
+        custom:layout_constraintHorizontal_bias="0.487"
         custom:layout_constraintStart_toStartOf="parent"
         custom:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
@@ -23,7 +38,7 @@
         android:id="@+id/revealAllDigits"
         android:layout_width="370dp"
         android:layout_height="70dp"
-        android:layout_marginTop="36dp"
+        android:layout_marginTop="32dp"
         android:background="@drawable/button_style"
         android:fontFamily="@font/open_sans_bold"
         android:text="@string/reveal_digits"
