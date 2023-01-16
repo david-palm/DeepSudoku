@@ -6,3 +6,13 @@
 
 # Overview
 # How it works
+![DeepSudoku](https://user-images.githubusercontent.com/109848051/212676978-a31c9174-85ba-489e-bf2c-93a72d41b3a9.gif)
+
+### Identifying and warping the sudoku
+In order to process the image all irrelevant information needs to be removed from it. To achieve this the contour of the sudoku is found by looking for contour that can be approximated by 4 points and has a certain size. Then a padding is added to the contour as a safety measure to avoid cutting of numbers and lines at the sides of the image. The corner points of the padded contour are then used to perform a four-point transform and warp the image to the screen.
+### Identifying lines
+### Finding intersections
+### Cutting cells
+### Removing artifacts
+### Classifying digits
+
