@@ -1,3 +1,4 @@
+# DeepSudoku - Image-based sudoku solver
 <p align="center">
   <img src="https://user-images.githubusercontent.com/109848051/211549188-97909c12-d9c4-47bd-b7d6-0cb32d31131a.png" width=30%>
 </p>
