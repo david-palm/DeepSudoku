@@ -28,5 +28,9 @@ The *Hough transform* algorithm is able to calculate the angle, distance and mag
 With the equations of the lines the intersections can be easily calculated using simple Algebra. The coordinates of the intersections are then stored in a two-dimensional array and used to cut the image into smaller images, each containing a single cell.
 ### Removing artifacts
 After cutting the image into cells remains of lines and other interferences may still be present in the image. This could prevent the neural network to classify the digits correctly. To avoid this, we look at all contours in the image and remove those who have unfitting dimensions e.g are two small, thin or long to be the contour of a digit. Subsequently the image is resized to 28 by 28 pixels so that it can passed to the neural network.
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/109848051/212741770-a182df8c-e770-474e-827f-484089b9d7fd.png">
+  <img src="https://user-images.githubusercontent.com/109848051/212741816-2ac00607-8760-4da4-b676-0175d8d00ea7.png">
+</p>
 ### Classifying digits
 The neural network was originally build using *TensorFlow* and *Keras* containing *Dense* layers, 2D convolution layers, max-pooling layers and dropout layout. The network was converted using [frugally-deep](https://github.com/Dobiasd/frugally-deep) to integrate it into the native C++ code. All cells are fed to the model as a tensor. A vector with 9 floats is returned, each representing the probality of the digit. If the value is over 0.7 the digit is viewed as recognized otherwise it is viewed as an empty cell.
