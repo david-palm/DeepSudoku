@@ -10,7 +10,9 @@
 </p>
 
 #### Download the current APK [here](https://github.com/david-palm/DeepSudoku/releases/download/unstable/deepsudoku_unstable_v0.1.apk)!
-
+Known issues:
+- app crashes when the image cannot be processed because native C++ code does not throw exceptions
+- app needs to be restarted after giving camera permission on most devices
 
 # How it works!
 
