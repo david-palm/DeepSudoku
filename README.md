@@ -39,4 +39,4 @@ After cutting the image into cells remains of lines and other interferences may 
 </p>
 
 ### Classifying digits with the neural network
-The neural network was originally build using *TensorFlow* and *Keras* containing *Dense* layers, 2D convolution layers, max-pooling layers and dropout layout. The network was converted using [frugally-deep](https://github.com/Dobiasd/frugally-deep) to integrate it into the native C++ code. All cells are fed to the model as a tensor. A vector with 9 floats is returned, each representing the probality of the digit. If the value is over 0.7 the digit is viewed as recognized otherwise it is viewed as an empty cell.
+The neural network was originally build using *TensorFlow* and *Keras* containing *Dense* layers, 2D convolution layers, max-pooling layers and dropout layout. The network was converted using [frugally-deep](https://github.com/Dobiasd/frugally-deep) to integrate it into the native C++ code. All cells are fed to the model as a tensor. A vector with 9 floats is returned, each representing the probability of the digit. If the value is over 0.7 the digit is viewed as recognized otherwise it is viewed as an empty cell.
