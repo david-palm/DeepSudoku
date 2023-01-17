@@ -5,8 +5,15 @@
 
 #### DeepSudoku is an Android application that allows the user to solve a Sudoku by taking a picture of it with their smartphone camera. It is based on a group project for the course _image processing_ at the _University of Applied Sciences Cologne_. The group project was written in _Python_ as a _Jupyter Notebook_ using the _Google Colab_ platform and _OpenCV_. I rewrote the project to object-oriented _C++_-code and optimized it so that it runs as a stand-alone _Android_ app.
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/109848051/212972617-bf64bc62-d40f-44b4-ad00-ee966f0fa26d.png" width=70%>
+</p>
+
 #### Download the current APK [here](https://github.com/david-palm/DeepSudoku/releases/download/unstable/deepsudoku_unstable_v0.1.apk)!
-# How it works
+
+
+# How it works!
+
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/109848051/212706009-c62fad85-c83f-4ccf-ad80-06d3ba630cfc.gif" width=40%>
