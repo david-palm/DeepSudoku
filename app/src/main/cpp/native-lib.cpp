@@ -20,7 +20,7 @@
  * the coordinates of the sudoku contour. */
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_com_example_deepsudoku_ImageViewFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
+Java_com_example_deepsudoku_ImageCaptureFragment_identifySudoku(JNIEnv *env, jobject thiz, jobject inputBitmap, jobject outputBitmap)
 {
     ImageProcessor *imageProcessor = new ImageProcessor(env, inputBitmap);
     try

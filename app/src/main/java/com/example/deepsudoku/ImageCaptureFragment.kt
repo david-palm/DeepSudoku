@@ -3,7 +3,10 @@ package com.example.deepsudoku
 import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -27,7 +30,7 @@ import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
+var imageProcessorPointer: Long = 0
 class ImageCaptureFragment : Fragment() {
     private var _viewBinding: FragmentImageCaptureBinding? = null
     private val viewBinding: FragmentImageCaptureBinding get() = _viewBinding!!
@@ -132,10 +135,16 @@ class ImageCaptureFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                    val bundle = Bundle()
-                    bundle.putParcelable("ImageUri", output.savedUri)
-                    Navigation.findNavController(requireView()).navigate(
-                        R.id.action_imageCaptureFragment_to_imageViewFragment, bundle)
+                    try{
+                        var previewImage = previewSudoku(output.savedUri!!)
+                        val bundle = Bundle()
+                        bundle.putParcelable("PreviewImage", previewImage)
+                        Navigation.findNavController(requireView()).navigate(
+                            R.id.action_imageCaptureFragment_to_imageViewFragment, bundle)
+                    }
+                    catch(exception: Exception){
+                        Log.e("ImageCapture", exception.message!!)
+                    }
 
                 }
             }
@@ -150,6 +159,19 @@ class ImageCaptureFragment : Fragment() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
+    fun previewSudoku(imageUri: Uri): Bitmap{
+        //Loading image
+        var image: Bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(requireContext().contentResolver, imageUri!!))
+        //Making mutable copies of input image in order to pass them to native code
+        image = image.copy(Bitmap.Config.ARGB_8888, true)
+        var output: Bitmap = image.copy(image.config, true)
+        //Process image by calling native code
+        imageProcessorPointer = identifySudoku(image, output)
+        return output;
+    }
+
+    external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap) : Long
 
 
     companion object {
@@ -166,4 +188,5 @@ class ImageCaptureFragment : Fragment() {
             }.toTypedArray()
 
     }
+
 }
