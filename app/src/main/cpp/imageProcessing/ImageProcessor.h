@@ -1,11 +1,13 @@
 #pragma once
 
+#include <jni.h>
 #include <opencv2/core.hpp>
 #include <android/bitmap.h>
-#include <jni.h>
+#include <android/log.h>
 
 #include "../utils/cvUtils.h"
 #include "HoughAccumulator.h"
+#include "ImageProcessingExceptions.h"
 
 class Line
 {
@@ -32,18 +34,18 @@ public:
     ImageProcessor(cv::Mat& input);
     ImageProcessor(JNIEnv* env, jobject& input);
 
-    void previewSudoku(cv::Mat& output);
-    void previewSudoku(JNIEnv* env, jobject& output);
-    void cutDigits(cv::Mat* (&digits)[81]);
+    void previewSudoku(cv::Mat& output) throw(ImageProcessingException);
+    void previewSudoku(JNIEnv* env, jobject& output) throw(ImageProcessingException);
+    void cutDigits(cv::Mat* (&digits)[81]) throw(ImageProcessingException);
 private:
-    void identifySudoku(int kernelSize = 41);
-    void showSudoku(cv::Mat& output);
-    void warpSudoku();
-    void identifyLines();
-    void showLines(cv::Mat& output);
-    void calculateIntersections();
-    void showIntersections(cv::Mat& output);
-    void cutCells();
-    void showCells(cv::Mat& output, float scale = 5);
-    void extractDigits(cv::Mat* (&digits)[81]);
+    void identifySudoku(int kernelSize = 41) throw(ContourNotFoundException);
+    void showSudoku(cv::Mat& output) throw(ContourNotFoundException);
+    void warpSudoku() throw(ImageNotWarpedException);
+    void identifyLines() throw(LinesNotFoundException);
+    void showLines(cv::Mat& output) throw(LinesNotFoundException);
+    void calculateIntersections() throw(IntersectionsNotFoundException);
+    void showIntersections(cv::Mat& output) throw(IntersectionsNotFoundException);
+    void cutCells() throw(CellsNotCutException);
+    void showCells(cv::Mat& output, float scale = 5) throw(CellsNotCutException);
+    void extractDigits(cv::Mat* (&digits)[81]) throw(DigitsNotExtractedException);
 };

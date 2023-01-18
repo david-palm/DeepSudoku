@@ -49,7 +49,13 @@ class ImageViewFragment : Fragment() {
         image = image.copy(Bitmap.Config.ARGB_8888, true)
         var output: Bitmap = image.copy(image.config, true)
         //Process image by calling native code
-        imageProcessorPointer = identifySudoku(image, output)
+        imageProcessorPointer = 0;
+        try{
+            identifySudoku(image, output)
+        }
+        catch(exception: Exception){
+            Log.d("Test", exception.toString())
+        }
         viewBinding.imageView.setImageBitmap(output)
     }
 

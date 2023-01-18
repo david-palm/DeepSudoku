@@ -65,6 +65,7 @@ class ImageCaptureFragment : Fragment() {
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+
             // Preview
             val preview = Preview.Builder()
                 .build()
@@ -73,7 +74,11 @@ class ImageCaptureFragment : Fragment() {
                 }
 
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build()
+
+            preview.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
 
             try {
                 // Unbind use cases before rebinding
