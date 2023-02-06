@@ -3,7 +3,10 @@ package com.example.deepsudoku
 import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -18,16 +21,18 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import com.example.deepsudoku.databinding.FragmentImageCaptureBinding
+import com.google.android.material.snackbar.Snackbar
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-
+var imageProcessorPointer: Long = 0
 class ImageCaptureFragment : Fragment() {
     private var _viewBinding: FragmentImageCaptureBinding? = null
     private val viewBinding: FragmentImageCaptureBinding get() = _viewBinding!!
@@ -36,7 +41,7 @@ class ImageCaptureFragment : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): CoordinatorLayout {
 
         _viewBinding = FragmentImageCaptureBinding.inflate(layoutInflater, container, false)
 
@@ -65,6 +70,7 @@ class ImageCaptureFragment : Fragment() {
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
 
+
             // Preview
             val preview = Preview.Builder()
                 .build()
@@ -73,7 +79,11 @@ class ImageCaptureFragment : Fragment() {
                 }
 
             // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val cameraSelector = CameraSelector.Builder()
+                .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                .build()
+
+            preview.setSurfaceProvider(viewBinding.viewFinder.surfaceProvider)
 
             try {
                 // Unbind use cases before rebinding
@@ -127,10 +137,23 @@ class ImageCaptureFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
-                    val bundle = Bundle()
-                    bundle.putParcelable("ImageUri", output.savedUri)
-                    Navigation.findNavController(requireView()).navigate(
-                        R.id.action_imageCaptureFragment_to_imageViewFragment, bundle)
+
+                    try{
+                        var previewImage = previewSudoku(output.savedUri!!)
+                        val bundle = Bundle()
+                        bundle.putParcelable("PreviewImage", previewImage)
+                        Navigation.findNavController(requireView()).navigate(
+                            R.id.action_imageCaptureFragment_to_imageViewFragment, bundle)
+                    }
+                    catch(exception: Exception){
+                        if(exception.message === null){
+                            Log.e("ImageCapture", "Unknown Error while capturing image!")
+                            Snackbar.make(viewBinding.root, "Unknown Error while capturing image!", 2500).show()
+                        }else {
+                            Log.e("ImageCapture", exception.message!!)
+                            Snackbar.make(viewBinding.root, exception.message!!, 2500).show()
+                        }
+                    }
 
                 }
             }
@@ -145,6 +168,19 @@ class ImageCaptureFragment : Fragment() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
+    fun previewSudoku(imageUri: Uri): Bitmap{
+        //Loading image
+        var image: Bitmap = ImageDecoder.decodeBitmap(ImageDecoder.createSource(requireContext().contentResolver, imageUri!!))
+        //Making mutable copies of input image in order to pass them to native code
+        image = image.copy(Bitmap.Config.ARGB_8888, true)
+        var output: Bitmap = image.copy(image.config, true)
+        //Process image by calling native code
+        imageProcessorPointer = identifySudoku(image, output)
+        return output;
+    }
+
+    external fun identifySudoku(inputImage: Bitmap, outputImage: Bitmap) : Long
 
 
     companion object {
@@ -161,4 +197,5 @@ class ImageCaptureFragment : Fragment() {
             }.toTypedArray()
 
     }
+
 }

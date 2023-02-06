@@ -11,38 +11,60 @@ ImageProcessor::ImageProcessor(JNIEnv* env, jobject& input)
     cvUtils::bitmapToMat(env, input, m_Input, 0);
 }
 
-void ImageProcessor::previewSudoku(cv::Mat& output)
+void ImageProcessor::previewSudoku(cv::Mat& output) throw(ImageProcessingException)
 {
-    cv::Mat outputMatrix;
-    cv::Mat warpedSudoku;
-    identifySudoku();
-    showSudoku(output);
-    warpSudoku();
-    identifyLines();
-    showLines(output);
+    try {
+        cv::Mat outputMatrix;
+        cv::Mat warpedSudoku;
+        identifySudoku();
+        showSudoku(output);
+        warpSudoku();
+        identifyLines();
+        showLines(output);
+    }
+    catch(ImageProcessingException &exception)
+    {
+        throw;
+    }
 }
 
-void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output)
+void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output) throw(ImageProcessingException)
 {
-    cv::Mat outputMatrix;
-    cv::Mat warpedSudoku;
-    identifySudoku();
-    showSudoku(outputMatrix);
-    warpSudoku();
-    identifyLines();
-    showLines(outputMatrix);
-    cvUtils::matToBitmap(env, outputMatrix, output, 0);
+    try
+    {
+        cv::Mat outputMatrix;
+        cv::Mat warpedSudoku;
+        identifySudoku();
+        showSudoku(outputMatrix);
+        warpSudoku();
+        identifyLines();
+        showLines(outputMatrix);
+        cvUtils::matToBitmap(env, outputMatrix, output, 0);
+    }
+    catch(ImageProcessingException &exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "Exception caught while creating preview!");
+        throw;
+    }
 }
 
-void ImageProcessor::cutDigits(cv::Mat* (&digits)[81])
+void ImageProcessor::cutDigits(cv::Mat* (&digits)[81]) throw(ImageProcessingException)
 {
-    calculateIntersections();
-    cutCells();
-    extractDigits(digits);
+    try
+    {
+        calculateIntersections();
+        cutCells();
+        extractDigits(digits);
+    }
+    catch(ImageProcessingException &exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "Exception caught while preparing digits!");
+        throw;
+    }
 }
 
 //Private functions
-void ImageProcessor::identifySudoku(int kernelSize)
+void ImageProcessor::identifySudoku(int kernelSize) throw(ContourNotFoundException)
 {
     cv::Mat binaryImage;
     /* Converts the image to binary. */
@@ -155,38 +177,60 @@ void ImageProcessor::identifySudoku(int kernelSize)
     std::vector<cv::Point> approximation;
     std::vector<cv::Point> paddedApproximation;
 
-    prepareImage();
-    getSudokuContour(approximation);
-    addPadding(approximation, paddedApproximation);
-
-    m_SudokuContour = approximation;
-    cvUtils::intToFloatContour(paddedApproximation, m_PaddedSudokuContour);
-}
-
-void ImageProcessor::showSudoku(cv::Mat& output)
-{
-    output = m_Input.clone();
-    //Displaying approximated contour
-    cv::drawContours(output, std::vector<std::vector<cv::Point>> { m_SudokuContour },
-                     0, cv::Scalar(72,79,184),10);
-    //Displaying contour points
-    for(cv::Point point: m_SudokuContour)
+    try
     {
-        cv::circle(output, point, 20, cv::Scalar(29, 59, 66), -1);
+        prepareImage();
+        getSudokuContour(approximation);
+        addPadding(approximation, paddedApproximation);
+
+        m_SudokuContour = approximation;
+        cvUtils::intToFloatContour(paddedApproximation, m_PaddedSudokuContour);
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Sudoku contour not found!", exception.what());
+        throw ContourNotFoundException("Sudoku contour not found!");
     }
 }
 
-void ImageProcessor::warpSudoku()
+void ImageProcessor::showSudoku(cv::Mat& output) throw(ContourNotFoundException)
 {
-    std::vector<cv::Point2f> corners = { cv::Point2f(m_Input.cols, 0),
-                                         cv::Point2f(0, 0),
-                                         cv::Point2f(0, m_Input.rows),
-                                         cv::Point2f(m_Input.cols, m_Input.rows) };
-    cv::Mat transform = cv::getPerspectiveTransform(m_PaddedSudokuContour, corners);
-    cv::warpPerspective(m_Input, m_WarpedSudoku, transform, m_Input.size());
+    try {
+        output = m_Input.clone();
+        //Displaying approximated contour
+        cv::drawContours(output, std::vector<std::vector<cv::Point>>{m_SudokuContour},
+                         0, cv::Scalar(72, 79, 184), 10);
+        //Displaying contour points
+        for (cv::Point point: m_SudokuContour) {
+            cv::circle(output, point, 20, cv::Scalar(29, 59, 66), -1);
+        }
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Sudoku contour not found!", exception.what());
+        throw ContourNotFoundException("Sudoku contour not found!");
+    }
 }
 
-void ImageProcessor::identifyLines() {
+void ImageProcessor::warpSudoku() throw(ImageNotWarpedException)
+{
+    try {
+        std::vector<cv::Point2f> corners = {cv::Point2f(m_Input.cols, 0),
+                                            cv::Point2f(0, 0),
+                                            cv::Point2f(0, m_Input.rows),
+                                            cv::Point2f(m_Input.cols, m_Input.rows)};
+        cv::Mat transform = cv::getPerspectiveTransform(m_PaddedSudokuContour, corners);
+        cv::warpPerspective(m_Input, m_WarpedSudoku, transform, m_Input.size());
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Image not warped!", exception.what());
+        throw ImageNotWarpedException("Image not warped!");
+    }
+}
+
+void ImageProcessor::identifyLines() throw(LinesNotFoundException)
+{
     /* Creates x and y gradient images from input */
 
     auto createGradientImages = [&](cv::Mat &gradientX, cv::Mat &gradientY, int kernelSize = 25) {
@@ -216,35 +260,62 @@ void ImageProcessor::identifyLines() {
         filterImage(preparedImage, gradientX, gradientY);
     };
 
-    cv::Mat gradientX, gradientY;
-    createGradientImages(gradientX, gradientY);
-
-    HoughAccumulator acc(gradientX, gradientY, M_PI / 720.0, 1);
-    acc.fill();
-    acc.normalize();
-    lines = acc.getLines();
-}
-
-void ImageProcessor::showLines(cv::Mat& output)
-{
-    //Creating line image
-    output = m_WarpedSudoku.clone();
-    for(Pixel* line : lines)
+    try
     {
-        double a = cos((*line).theta);
-        double b = sin((*line).theta);
+        cv::Mat gradientX, gradientY;
+        createGradientImages(gradientX, gradientY);
 
-        double x0 = a * (*line).rho;
-        double y0 = b * (*line).rho;
+        HoughAccumulator acc(gradientX, gradientY, M_PI / 720.0, 1);
+        acc.fill();
+        acc.normalize();
+        lines = acc.getLines();
+        int horizontalLines = 0;
+        int verticalLines = 0;
 
-        cv::Point2i pt1((int) (y0 + m_WarpedSudoku.size().height * a), (int) (x0 + m_WarpedSudoku.size().width * (-b)));
-        cv::Point2i pt2((int) (y0 - m_WarpedSudoku.size().height * a), (int) (x0 - m_WarpedSudoku.size().width * (-b)));
+        for(Pixel* line : lines)
+        {
+            horizontalLines = (abs(line->theta) > 0.1) ? horizontalLines + 1 : horizontalLines;
+            verticalLines = (abs(line->theta - ( M_PI / 2)) > 0.1)  ? verticalLines + 1 : verticalLines;
+        }
 
-        cv::line(output, pt1, pt2, cv::Scalar(0, 144, 235), 10);
+        if(lines.size() != 20) throw LinesNotFoundException("Not enough Lines found!");
+        if(horizontalLines != 10 || verticalLines != 10) throw LinesNotFoundException("Not enough vertical or horizontal lines identified!");
+    }
+    catch(...)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Lines not found!");
+        throw LinesNotFoundException("Not enough Lines not found!");
     }
 }
 
-void ImageProcessor::calculateIntersections()
+void ImageProcessor::showLines(cv::Mat& output) throw(LinesNotFoundException)
+{
+    try {
+        //Creating line image
+        output = m_WarpedSudoku.clone();
+        for (Pixel *line: lines) {
+            double a = cos((*line).theta);
+            double b = sin((*line).theta);
+
+            double x0 = a * (*line).rho;
+            double y0 = b * (*line).rho;
+
+            cv::Point2i pt1((int) (y0 + m_WarpedSudoku.size().height * a),
+                            (int) (x0 + m_WarpedSudoku.size().width * (-b)));
+            cv::Point2i pt2((int) (y0 - m_WarpedSudoku.size().height * a),
+                            (int) (x0 - m_WarpedSudoku.size().width * (-b)));
+
+            cv::line(output, pt1, pt2, cv::Scalar(0, 144, 235), 10);
+        }
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Lines not found!", exception.what());
+        throw LinesNotFoundException("Lines not found!");
+    }
+}
+
+void ImageProcessor::calculateIntersections() throw(IntersectionsNotFoundException)
 {
     auto getIntersection = [&] (Pixel& line1, Pixel& line2) -> cv::Point2i*
     {
@@ -279,38 +350,47 @@ void ImageProcessor::calculateIntersections()
         return false;
     };
 
-
-    //Comparing all lines with each other to find all intersections
-    for(Pixel* line1 : lines)
+    try
     {
-        for(Pixel* line2 : lines)
-        {
-            cv::Point2i* intersection = getIntersection((*line1), (*line2));
+        //Comparing all lines with each other to find all intersections
+        for (Pixel *line1: lines) {
+            for (Pixel *line2: lines) {
+                cv::Point2i *intersection = getIntersection((*line1), (*line2));
 
-            if(intersection != NULL)
-            {
+                if (intersection != NULL) {
 
-                if(!intersectionAlreadyExists(*intersection))
-                {
-                    intersections[numberOfIntersections] = intersection;
-                    numberOfIntersections++;
+                    if (!intersectionAlreadyExists(*intersection)) {
+                        intersections[numberOfIntersections] = intersection;
+                        numberOfIntersections++;
+                    }
+
                 }
-
             }
-
         }
     }
-}
-
-void ImageProcessor::showIntersections(cv::Mat &input)
-{
-    for(cv::Point2i* intersection: intersections)
+    catch(...)
     {
-        cv::circle(input, *intersection, 25, cv::Scalar(219, 58, 0), -1);
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Intersections not found!");
+        throw IntersectionsNotFoundException("Intersections not found!");
     }
 }
 
-void ImageProcessor::cutCells()
+void ImageProcessor::showIntersections(cv::Mat &input) throw(IntersectionsNotFoundException)
+{
+    try
+    {
+        for (cv::Point2i *intersection: intersections) {
+            cv::circle(input, *intersection, 25, cv::Scalar(219, 58, 0), -1);
+        }
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Intersections not found!", exception.what());
+        throw IntersectionsNotFoundException("Intersections not found!");
+    }
+}
+
+void ImageProcessor::cutCells() throw(CellsNotCutException)
 {
     auto binarizeImage = [&] (cv::Mat& output, int gaussKernelSize = 41)
     {
@@ -350,109 +430,132 @@ void ImageProcessor::cutCells()
     cv::Mat binaryImage;
     binarizeImage(binaryImage);
 
-    cv::Point2i* sortedIntersections[10][10];
-    convertTo2dArray(sortedIntersections);
-
-    //Cut image
-    for(int row = 0; row < 9; row++)
+    cv::Point2i *sortedIntersections[10][10];
+    try
     {
-        for(int col = 0; col < 9; col++)
-        {
-            int width = abs((*sortedIntersections[row + 1][col + 1]).y - (*sortedIntersections[row][col]).y);
-            int height = abs((*sortedIntersections[row + 1][col + 1]).x - (*sortedIntersections[row][col]).x);
-            cv::Mat* cell = new cv::Mat(height, width, CV_8UC1);
-            cvUtils::cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]), *sortedIntersections[row + 1][col + 1]);
-            cells[row * 9 + col] = cell;
-        }
-    }
-}
+        convertTo2dArray(sortedIntersections);
 
-void ImageProcessor::showCells(cv::Mat& output, float scale)
-{
-    output = cv::Mat(m_WarpedSudoku);
-    for(int i = 0; i < 81; i++)
-    {
-        for (int col = 0; col < (*cells[i]).size().width * scale; col++)
-        {
-            for (int row = 0; row < (*cells[i]).size().height * scale; row++)
-            {
-                output.at<uint32_t>(row + (i % 9) * ((*cells[i]).size().height + 1) * scale, col + (i / 9) * ((*cells[i]).size().width + 1) * scale) = (*cells[i]).at<uint8_t>(row / scale, col / scale);
+        //Cut image
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                int width = abs((*sortedIntersections[row + 1][col + 1]).y -
+                                (*sortedIntersections[row][col]).y);
+                int height = abs((*sortedIntersections[row + 1][col + 1]).x -
+                                 (*sortedIntersections[row][col]).x);
+                cv::Mat *cell = new cv::Mat(height, width, CV_8UC1);
+                cvUtils::cutImage(binaryImage, (*cell), (*sortedIntersections[row][col]),
+                                  *sortedIntersections[row + 1][col + 1]);
+                cells[row * 9 + col] = cell;
             }
         }
-        output.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
+    }
+    catch(...)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Cells can not be cut!");
+        throw CellsNotCutException("Cells not cut!");
     }
 }
 
-void ImageProcessor::extractDigits(cv::Mat* (&digits)[81])
+void ImageProcessor::showCells(cv::Mat& output, float scale) throw(CellsNotCutException)
 {
-    for(int i = 0; i < 81; i++)
+    output = cv::Mat(m_WarpedSudoku);
+    try
     {
-        //Resizing cell
-        cv::Mat* cell = new cv::Mat(50, 50, CV_8U);
-        cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_CUBIC);
-        //Find all contours in cell
-        std::vector<std::vector<cv::Point>> contours;
-        std::vector<cv::Vec4i> hierarchy;
-        cv::findContours((*cell), contours, hierarchy, cv::RETR_TREE,
-                         cv::CHAIN_APPROX_SIMPLE);
+        for (int i = 0; i < 81; i++) {
+            for (int col = 0; col < (*cells[i]).size().width * scale; col++) {
+                for (int row = 0; row < (*cells[i]).size().height * scale; row++) {
+                    output.at<uint32_t>(row + (i % 9) * ((*cells[i]).size().height + 1) * scale,
+                                        col + (i / 9) * ((*cells[i]).size().width + 1) *
+                                              scale) = (*cells[i]).at<uint8_t>(row / scale,
+                                                                               col / scale);
+                }
+            }
+            output.at<uint32_t>(29 + (i / 9) * 29 * 5, 29 + (i % 9) * 29 * 5) = 255;
+        }
+    }
+    catch(...)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Cells can not be cut!");
+        throw CellsNotCutException("Cells not cut!");
+    }
+}
 
-        cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8U);
-        cv::Mat* digitContour = new cv::Mat();
+void ImageProcessor::extractDigits(cv::Mat* (&digits)[81]) throw(DigitsNotExtractedException)
+{
+    try {
+        for (int i = 0; i < 81; i++) {
+            //Resizing cell
+            cv::Mat *cell = new cv::Mat(50, 50, CV_8U);
+            cv::resize((*cells[i]).clone(), (*cell), cv::Size(50, 50), 0, 0, cv::INTER_CUBIC);
+            //Find all contours in cell
+            std::vector<std::vector<cv::Point>> contours;
+            std::vector<cv::Vec4i> hierarchy;
+            cv::findContours((*cell), contours, hierarchy, cv::RETR_TREE,
+                             cv::CHAIN_APPROX_SIMPLE);
 
-        //Iterating over all contours to find the digit contour
-        for(std::vector<cv::Point>& contour: contours)
-        {
-            //Get bounding rectangle of contour to identify the digit contour
-            cv::Rect_<int> boundingRectangle = cv::boundingRect(contour);
-            cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
-            cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.width, boundingRectangle.y + boundingRectangle.height);
-            if((boundingRectangle.height < 46.0) && (boundingRectangle.width < 45.0))
-            {
-                if( ((float) cv::contourArea(contour) > 70.0f) && (430.0f > (float) cv::contourArea(contour)))
-                {
-                    if((cv::arcLength(contour, true) > 59.0f) && (cv::arcLength(contour, true) < 183.0f))
-                    {
-                        double aspectRatio = (double) boundingRectangle.width / (double) boundingRectangle.height;
-                        if((aspectRatio > 0.2) && (aspectRatio < 9.0))
-                        {
-                            if(boundingRectangle.height > 0 && boundingRectangle.width > 0)
-                            {
-                                digitContour = new cv::Mat(cv::Size(boundingRectangle.width, boundingRectangle.height), CV_8UC1);
-                                cvUtils::cutImage((*cell), (*digitContour), topLeft, bottomRight);
+            cv::Mat digit = cv::Mat::zeros((*cell).size(), CV_8U);
+            cv::Mat *digitContour = new cv::Mat();
+
+            //Iterating over all contours to find the digit contour
+            for (std::vector<cv::Point> &contour: contours) {
+                //Get bounding rectangle of contour to identify the digit contour
+                cv::Rect_<int> boundingRectangle = cv::boundingRect(contour);
+                cv::Point2i topLeft(boundingRectangle.x, boundingRectangle.y);
+                cv::Point2i bottomRight(boundingRectangle.x + boundingRectangle.width,
+                                        boundingRectangle.y + boundingRectangle.height);
+                if ((boundingRectangle.height < 46.0) && (boundingRectangle.width < 45.0)) {
+                    if (((float) cv::contourArea(contour) > 70.0f) &&
+                        (430.0f > (float) cv::contourArea(contour))) {
+                        if ((cv::arcLength(contour, true) > 59.0f) &&
+                            (cv::arcLength(contour, true) < 183.0f)) {
+                            double aspectRatio = (double) boundingRectangle.width /
+                                                 (double) boundingRectangle.height;
+                            if ((aspectRatio > 0.2) && (aspectRatio < 9.0)) {
+                                if (boundingRectangle.height > 0 && boundingRectangle.width > 0) {
+                                    digitContour = new cv::Mat(cv::Size(boundingRectangle.width,
+                                                                        boundingRectangle.height),
+                                                               CV_8UC1);
+                                    cvUtils::cutImage((*cell), (*digitContour), topLeft,
+                                                      bottomRight);
+                                } else {
+                                    digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
+                                    continue;
+                                }
+                                cv::rectangle((*cell), topLeft, bottomRight,
+                                              cv::Scalar(255, 255, 255), 2);
+                                break;
                             }
-                            else
-                            {
-                                digitContour = new cv::Mat(cv::Size(50, 50), CV_8UC1);
-                                continue;
-                            }
-                            cv::rectangle((*cell), topLeft, bottomRight, cv::Scalar(255, 255, 255), 2);
-                            break;
                         }
                     }
                 }
             }
-        }
 
-        cv::Point2i offset((*cell).size() / 2 - (*digitContour).size() / 2);
+            cv::Point2i offset((*cell).size() / 2 - (*digitContour).size() / 2);
 
-        //Copying digitContour into digit
-        digit.setTo(cv::Scalar(0));
-        if(((*digitContour).size().width < 50) && ((*digitContour).size().width > 5) && (*digitContour).size().height > 0)
-        {
-            for(int col = 0; col < (*digitContour).size().width; col++)
-            {
-                for(int row = 0; row < (*digitContour).size().height; row++)
-                {
-                    if((*digitContour).at<uint8_t>(row, col) > 0)
-                        digit.at<uint8_t>(row + offset.y, col + offset.x) = (*digitContour).at<uint8_t>(row, col);
+            //Copying digitContour into digit
+            digit.setTo(cv::Scalar(0));
+            if (((*digitContour).size().width < 50) && ((*digitContour).size().width > 5) &&
+                (*digitContour).size().height > 0) {
+                for (int col = 0; col < (*digitContour).size().width; col++) {
+                    for (int row = 0; row < (*digitContour).size().height; row++) {
+                        if ((*digitContour).at<uint8_t>(row, col) > 0)
+                            digit.at<uint8_t>(row + offset.y,
+                                              col + offset.x) = (*digitContour).at<uint8_t>(row,
+                                                                                            col);
+                    }
                 }
             }
-        }
-        delete digitContour;
-        //Resizing digit for neural network
-        cv::Mat* resizedDigit = new cv::Mat(28, 28, CV_8UC1);
-        cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
+            delete digitContour;
+            //Resizing digit for neural network
+            cv::Mat *resizedDigit = new cv::Mat(28, 28, CV_8UC1);
+            cv::resize(digit.clone(), (*resizedDigit), cv::Size(28, 28), 0, 0, cv::INTER_AREA);
 
-        digits[i] = resizedDigit;
+            digits[i] = resizedDigit;
+        }
+    }
+    catch(std::exception& exception)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Digits can not be extracted!", exception.what());
+        throw CellsNotCutException("Digits not extracted!");
     }
 }
