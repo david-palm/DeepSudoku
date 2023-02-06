@@ -22,19 +22,23 @@ void DigitClassifier::addDigitToPredictions(cv::Mat* digit, int* cell)
 
 void DigitClassifier::classifySudoku(cv::Mat* (&digits)[81], Sudoku &sudoku)
 {
-
-    for(int row = 0; row < 9; row++)
+    //TODO: Initialize futures here
     {
-        for(int col = 0; col < 9; col++)
-        {
-            //m_Futures.push_back(std::async(std::launch::async, &DigitClassifier::addDigitToPredictions, this, digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]));
-            addDigitToPredictions(digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]);
-            //__android_log_print(ANDROID_LOG_DEBUG, "DigitClassifier", "2Classified digit as %d", predictions[row][col]);
+        std::vector<std::future<void>> futures;
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                futures.push_back(
+                        std::async(std::launch::async, &DigitClassifier::addDigitToPredictions,
+                                   this, digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]));
+                //addDigitToPredictions(digits[row + col * 9], &sudoku.m_ScannedDigits[row][col]);
+                //__android_log_print(ANDROID_LOG_DEBUG, "DigitClassifier", "2Classified digit as %d", predictions[row][col]);
+            }
         }
     }
     SudokuSolver s;
     s.print(sudoku.m_ScannedDigits);
 }
+
 int DigitClassifier::classifyDigit(cv::Mat* digit)
 {
     //Converting OpenCV matrix to frugally-deep tensor
