@@ -37,6 +37,7 @@ add_library( # Sets the name of the library.
         SudokuSolver.cpp
         utils/performance.h
         imageProcessing/ImageProcessor.cpp
+        imageProcessing/ImageProcessingExceptions.cpp
         DigitClassifier.cpp
         Sudoku.cpp)
 

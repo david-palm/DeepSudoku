@@ -73,8 +73,8 @@ void SudokuSolver::print(std::array<std::array<int, 9>, 9> &sudoku)
     for(int row = 0; row < 9; row++)
     {
         if(row % 3 == 0)
-            __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "------------------------------");
-                            __android_log_print(ANDROID_LOG_ERROR, "frugally-deep", "[%d][%d][%d] | [%d][%d][%d] | [%d][%d][%d]",
+            __android_log_print(ANDROID_LOG_DEBUG, "frugally-deep", "------------------------------");
+                            __android_log_print(ANDROID_LOG_DEBUG, "frugally-deep", "[%d][%d][%d] | [%d][%d][%d] | [%d][%d][%d]",
                             sudoku[row][0], sudoku[row][1], sudoku[row][2], sudoku[row][3], sudoku[row][4], sudoku[row][5], sudoku[row][6], sudoku[row][7], sudoku[row][8]);
     }
 }
