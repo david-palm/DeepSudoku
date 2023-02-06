@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.snackbar.Snackbar
 import org.opencv.android.OpenCVLoader
 
 typealias LumaListener = (luma: Double) -> Unit
@@ -38,6 +39,8 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
         // Set up the action bar for use with the NavController
         setupActionBarWithNavController(navController)
+
+
     }
 
     /**

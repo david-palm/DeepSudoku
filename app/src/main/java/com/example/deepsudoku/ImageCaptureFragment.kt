@@ -21,11 +21,13 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import com.example.deepsudoku.databinding.FragmentImageCaptureBinding
+import com.google.android.material.snackbar.Snackbar
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -39,7 +41,7 @@ class ImageCaptureFragment : Fragment() {
     private lateinit var cameraExecutor: ExecutorService
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): CoordinatorLayout {
 
         _viewBinding = FragmentImageCaptureBinding.inflate(layoutInflater, container, false)
 
@@ -144,6 +146,7 @@ class ImageCaptureFragment : Fragment() {
                     }
                     catch(exception: Exception){
                         Log.e("ImageCapture", exception.message!!)
+                        Snackbar.make(viewBinding.root, exception.message!!, 2500).show()
                     }
 
                 }
