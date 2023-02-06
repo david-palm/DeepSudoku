@@ -4,12 +4,13 @@
 
 class ImageProcessingException : public std::exception {
 protected:
-    char * message;
     int type;
     ImageProcessingException(char * msg, int type) : message(msg), type(type) {}
     virtual char* what () = 0;
 public:
     int getType() { return type; }
+
+    char * message;
 };
 
 class ContourNotFoundException : public ImageProcessingException {

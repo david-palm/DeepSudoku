@@ -31,7 +31,7 @@ Java_com_example_deepsudoku_ImageCaptureFragment_identifySudoku(JNIEnv *env, job
     {
         jclass clazz = env->FindClass("com/example/deepsudoku/exceptions/ContourNotFoundException");
         if (clazz != NULL) {
-            env->ThrowNew(clazz, "Sudoku contour could not be found!");
+            env->ThrowNew(clazz, exception.message);
         }
         env->DeleteLocalRef(clazz);
     }
@@ -39,7 +39,7 @@ Java_com_example_deepsudoku_ImageCaptureFragment_identifySudoku(JNIEnv *env, job
     {
         jclass clazz = env->FindClass("com/example/deepsudoku/exceptions/ImageNotWarpedException");
         if (clazz != NULL) {
-            env->ThrowNew(clazz, "Image could not be warped!");
+            env->ThrowNew(clazz, exception.message);
         }
         env->DeleteLocalRef(clazz);
     }
@@ -48,7 +48,7 @@ Java_com_example_deepsudoku_ImageCaptureFragment_identifySudoku(JNIEnv *env, job
         __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "Creating JAVA exception!");
         jclass clazz = env->FindClass("com/example/deepsudoku/exceptions/LinesNotFoundException");
         if (clazz != NULL) {
-            env->ThrowNew(clazz, "Lines can not be identified!");
+            env->ThrowNew(clazz, exception.message);
         }
         env->DeleteLocalRef(clazz);
     }

@@ -269,12 +269,22 @@ void ImageProcessor::identifyLines() throw(LinesNotFoundException)
         acc.fill();
         acc.normalize();
         lines = acc.getLines();
+        int horizontalLines = 0;
+        int verticalLines = 0;
+
+        for(Pixel* line : lines)
+        {
+            horizontalLines = (abs(line->theta) > 0.1) ? horizontalLines + 1 : horizontalLines;
+            verticalLines = (abs(line->theta - ( M_PI / 2)) > 0.1)  ? verticalLines + 1 : verticalLines;
+        }
+
         if(lines.size() != 20) throw LinesNotFoundException("Not enough Lines found!");
+        if(horizontalLines != 10 || verticalLines != 10) throw LinesNotFoundException("Not enough vertical or horizontal lines identified!");
     }
     catch(...)
     {
         __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Lines not found!");
-        throw LinesNotFoundException("Lines not found!");
+        throw LinesNotFoundException("Not enough Lines not found!");
     }
 }
 

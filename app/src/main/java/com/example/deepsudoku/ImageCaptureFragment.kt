@@ -137,6 +137,7 @@ class ImageCaptureFragment : Fragment() {
 
                 override fun
                         onImageSaved(output: ImageCapture.OutputFileResults){
+
                     try{
                         var previewImage = previewSudoku(output.savedUri!!)
                         val bundle = Bundle()
@@ -145,8 +146,13 @@ class ImageCaptureFragment : Fragment() {
                             R.id.action_imageCaptureFragment_to_imageViewFragment, bundle)
                     }
                     catch(exception: Exception){
-                        Log.e("ImageCapture", exception.message!!)
-                        Snackbar.make(viewBinding.root, exception.message!!, 2500).show()
+                        if(exception.message === null){
+                            Log.e("ImageCapture", "Unknown Error while capturing image!")
+                            Snackbar.make(viewBinding.root, "Unknown Error while capturing image!", 2500).show()
+                        }else {
+                            Log.e("ImageCapture", exception.message!!)
+                            Snackbar.make(viewBinding.root, exception.message!!, 2500).show()
+                        }
                     }
 
                 }
