@@ -52,6 +52,14 @@ Java_com_example_deepsudoku_ImageCaptureFragment_identifySudoku(JNIEnv *env, job
         }
         env->DeleteLocalRef(clazz);
     }
+    catch(PreviewException& exception)
+    {
+        jclass clazz = env->FindClass("com/example/deepsudoku/exceptions/PreviewException");
+        if (clazz != NULL) {
+            env->ThrowNew(clazz, exception.message);
+        }
+        env->DeleteLocalRef(clazz);
+    }
     catch(...)
     {
         jclass clazz = env->FindClass("java/lang/Exception");

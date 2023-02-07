@@ -13,6 +13,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"></androidx.camera.view.PreviewView>
 
+    <ImageView
+        android:id="@+id/loading_icon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/ic_loading"
+        android:layout_gravity="center">
+
+    </ImageView>
+
     <ImageButton
         android:id="@+id/image_capture_button"
         android:layout_width="match_parent"

@@ -44,7 +44,7 @@ void ImageProcessor::previewSudoku(JNIEnv* env, jobject& output) throw(ImageProc
     catch(ImageProcessingException &exception)
     {
         __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "Exception caught while creating preview!");
-        throw;
+        throw PreviewException(exception.message);
     }
 }
 
@@ -271,20 +271,27 @@ void ImageProcessor::identifyLines() throw(LinesNotFoundException)
         lines = acc.getLines();
         int horizontalLines = 0;
         int verticalLines = 0;
+        bool linesTooClose = false;
 
         for(Pixel* line : lines)
         {
             horizontalLines = (abs(line->theta) > 0.1) ? horizontalLines + 1 : horizontalLines;
             verticalLines = (abs(line->theta - ( M_PI / 2)) > 0.1)  ? verticalLines + 1 : verticalLines;
+            if(!linesTooClose) {
+                for (Pixel *line2: lines) {
+                    if (line2->rho != line->rho && abs(line->theta - line2->theta) < 0.1 &&abs(line->rho - line2->rho) < 70) linesTooClose = true;
+                }
+            }
         }
 
         if(lines.size() != 20) throw LinesNotFoundException("Not enough Lines found!");
         if(horizontalLines != 10 || verticalLines != 10) throw LinesNotFoundException("Not enough vertical or horizontal lines identified!");
+        if(linesTooClose) throw LinesNotFoundException("Lines too close!");
     }
     catch(...)
     {
         __android_log_print(ANDROID_LOG_ERROR, "ImageProcessor", "%s: Lines not found!");
-        throw LinesNotFoundException("Not enough Lines not found!");
+        throw LinesNotFoundException("Not enough Lines found!");
     }
 }
 

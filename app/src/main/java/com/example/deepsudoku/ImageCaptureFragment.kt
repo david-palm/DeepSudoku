@@ -15,6 +15,7 @@ import android.util.Rational
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -57,6 +58,8 @@ class ImageCaptureFragment : Fragment() {
         viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
 
         (activity as AppCompatActivity?)!!.supportActionBar!!.hide()
+
+        viewBinding.loadingIcon.visibility = View.GONE
 
         cameraExecutor = Executors.newSingleThreadExecutor()
         // Inflate the layout for this fragment
@@ -104,6 +107,13 @@ class ImageCaptureFragment : Fragment() {
     }
 
     private fun takePhoto() {
+        // After taking a photo the capture button is hidden and a loading icon appears
+        viewBinding.imageCaptureButton.visibility = View.GONE
+        viewBinding.loadingIcon.visibility = View.VISIBLE
+        val rotation = AnimationUtils.loadAnimation(context, R.anim.rotate)
+        rotation.fillAfter = true
+        viewBinding.loadingIcon.startAnimation(rotation)
+
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
 
@@ -153,6 +163,8 @@ class ImageCaptureFragment : Fragment() {
                             Log.e("ImageCapture", exception.message!!)
                             Snackbar.make(viewBinding.root, exception.message!!, 2500).show()
                         }
+                        viewBinding.loadingIcon.visibility = View.GONE
+                        viewBinding.imageCaptureButton.visibility = View.VISIBLE
                     }
 
                 }
