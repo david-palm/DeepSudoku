@@ -44,16 +44,24 @@ class ImageViewFragment : Fragment() {
 
 
     private fun solveSudoku(){
-        var sudoku: IntArray = IntArray(81);
-        var solvedSudoku: IntArray = IntArray(81);
+        try {
+            viewBinding.imageView.visibility = View.GONE
+            viewBinding.solveSudoku.visibility = View.INVISIBLE
+            viewBinding.retakeImage.visibility = View.GONE
+            var sudoku: IntArray = IntArray(81);
+            var solvedSudoku: IntArray = IntArray(81);
 
-        //Process image by calling native code
-        solveSudoku(aiModelPointer, imageProcessorPointer, sudoku, solvedSudoku)
+            //Process image by calling native code
+            solveSudoku(aiModelPointer, imageProcessorPointer, sudoku, solvedSudoku)
 
-        val bundle = Bundle()
-        bundle.putIntegerArrayList("Sudoku", sudoku.toCollection(ArrayList()))
-        bundle.putIntegerArrayList("SolvedSudoku", solvedSudoku.toCollection(ArrayList()))
-        Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_solutionViewFragment, bundle)
+            val bundle = Bundle()
+            bundle.putIntegerArrayList("Sudoku", sudoku.toCollection(ArrayList()))
+            bundle.putIntegerArrayList("SolvedSudoku", solvedSudoku.toCollection(ArrayList()))
+            Navigation.findNavController(requireView()).navigate(R.id.action_imageViewFragment_to_solutionViewFragment, bundle)
+        } catch (exception: Exception) {
+            Log.e("SudokuSolver", "Sudoku could not be solved!")
+            Snackbar.make(viewBinding.root, "Sudoku could not be solved!", 2500).show()
+        }
     }
 
     private fun deleteImage(){

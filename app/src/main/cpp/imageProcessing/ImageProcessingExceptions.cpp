@@ -6,3 +6,4 @@ char* LinesNotFoundException::what() { return message; }
 char* IntersectionsNotFoundException::what() { return message; }
 char* CellsNotCutException::what() { return message; }
 char* DigitsNotExtractedException::what() { return message; }
+char* PreviewException::what() { return message; }

@@ -66,3 +66,13 @@ public:
     DigitsNotExtractedException(char * msg) : ImageProcessingException(msg, 7) {}
     char* what ();
 };
+
+class PreviewException : public ImageProcessingException
+{
+
+public:
+    PreviewException(char * msg) : ImageProcessingException(msg, 8) {}
+    char* what ();
+
+    char * message;
+};
